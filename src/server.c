@@ -1,13 +1,39 @@
 #include "../lib/utils.h"
 #include "../lib/macros.h"
 
-int parse_req(char* req) {
+// parse and execute command
+// client commands follow the following format:
+// command:arg1,arg2,...
+//
+// The following commands are:
+// retrieve:file_path
+int parsex(char* req) {
+    char cmd[MSG_LEN];
+    char *req_p = strchr(req, ':');
 
+    if (req_p == NULL) {
+        printf("Request has incorrect format\n\n");
+        return -1;
+    }
+    
+    // copy the contents of the command into its own buffer
+    strncpy(cmd, req, req_p - req);
+    cmd[req_p - req] = '\0';
+
+    // req_p now points to the arg
+    req_p++;
+    
+    // determine which function to call
+    if (strncmp(cmd, RETRIEVE, MSG_LEN) == 0) {
+        retrieve(req_p);
+    }
+    // other commands to be implemented
 }
 
 
 int send_file(int sock_fd, char* path, char* msg, int msg_len) {
     int i;
+    long fsize;
     FILE *fp;
     char ch_current;
     int eof_reached = 0;
@@ -18,6 +44,13 @@ int send_file(int sock_fd, char* path, char* msg, int msg_len) {
         perror("fopen");
         return -1;
     }
+
+    // first determine the total number of bytes to transfer
+    fseek(fp, 0, SEEK_END);
+    fsize = ftell(fp);
+    rewind(fp);
+
+    
 
     while (1) {
         // i is used to track how many chars have been buffered

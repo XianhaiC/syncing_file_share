@@ -16,7 +16,7 @@
 #define BACKLOG 10
 #define TIMEOUT_LOG 20.0
 
-#define ALIAS_IMG_URL "https://www.thelocal.de/userdata/images/article/fa6fd5014ccbd8f4392f716473ab6ff354f871505d9128820bbb0461cce1d645.jpg"
-#define ALIAS_IMG_NAME "panda1.jpg"
+// server commands
+#define RETRIEVE "retrieve"
 
 #endif

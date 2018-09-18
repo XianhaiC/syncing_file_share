@@ -9,40 +9,6 @@ char *str_concat(const char *s1, const char *s2) {
     return result;
 }
 
-
-// sends response back to server
-// msg_buf must be null terminated
-int respond(int s, char *msg, int msg_len) {
-    int bytes_sent = 0;
-
-    //write the contents of msg_buf into socket s and return status
-    if ((bytes_sent = send(s, msg, msg_len, 0)) == -1) {
-        perror("send");
-    }
-
-    return bytes_sent;
-}
-
-int recieve(int s, char *msg, int msg_len) {
-    int bytes_read = 0;
-
-    //reset the msg buffer
-    memset(msg, 0, msg_len); 
-    
-    if ((bytes_read = recv(s, msg, msg_len, 0)) <= 0) {
-        // connection closed
-        if (bytes_read == 0) {
-            printf("selectserver: socked %d hung up\n", s);
-        }
-        else {
-            perror("recv");
-        }
-    }
-
-    return bytes_read;
-}
-
-
 // retrieves the network byte-order representation of the IP in the given
 // sockaddr
 void *get_in_addr(struct sockaddr *sa) {
@@ -121,6 +87,3 @@ int initcon_remote(char *ip, int port, struct sockaddr_in *addr, float timeout) 
     // connection attempts timed out
     return -1;
 }
-
-
- 
