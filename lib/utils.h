@@ -11,13 +11,8 @@
 
 #include "macros.h"
 
+int min(int x, int y);
+int max(int x, int y);
 char* str_concat(const char *s1, const char *s2);
-char* alias_img(void);
-int respond (int s, char *msg_buf);
-int recieve (int s, char *msg);
-void *get_in_addr(struct sockaddr *sa);
-void fill_sockaddr(int family, char *ip, int port, struct sockaddr_in *addr);
-int initcon_local(char *ip, int port, struct sockaddr_in *addr);
-int initcon_remote(char *ip, int port, struct sockaddr_in *addr, float timeout);
 
 #endif

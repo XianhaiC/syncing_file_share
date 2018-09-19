@@ -1,35 +1,65 @@
-#include "../lib/utils.h"
 #include "../lib/macros.h"
+#include "../lib/utils.h"
+#include "../lib/comm.h"
+
+struct command {
+    char *name;
+    void (*function) (void);
+};
+
+struct command commands[] {
+    {"req_file", req_file},
+}
+
+// get corresponding command function for command string
+int (*resolve_command(char *cmd))(int, char *) {
+    int i;
+    for (i = 0; i < sizeof(commands); i++) {
+        // found the corresponding command, so return the function
+        if (strncmp(commands[i].name, cmd) == 0) {
+            return commands[i].function;
+        }
+    }
+    
+    // cmd not found
+    return NULL;
+}
+
+
+// command functions
+int req_file(int sock_fd, char *path) {
+    return send_file(sock_fd, path);
+}
 
 // parse and execute command
 // client commands follow the following format:
 // command:arg1,arg2,...
 //
 // The following commands are:
-// retrieve:file_path
-int parsex(char* req) {
+// retr_file:file_path
+int parsex(char* msg, int sender_fd) {
     char cmd[MSG_LEN];
-    char *req_p = strchr(req, ':');
+    char *msg_p = strchr(msg, ':');
 
-    if (req_p == NULL) {
-        printf("Request has incorrect format\n\n");
+    if (msg_p == NULL) {
+        printf("Command has incorrect format\n\n");
         return -1;
     }
     
     // copy the contents of the command into its own buffer
-    strncpy(cmd, req, req_p - req);
-    cmd[req_p - req] = '\0';
+    strncpy(cmd, msg, msg_p - msg);
+    cmd[msg_p - msg] = '\0';
 
     // req_p now points to the arg
-    req_p++;
+    msg_p++;
     
     // determine which function to call
     if (strncmp(cmd, RETRIEVE, MSG_LEN) == 0) {
-        retrieve(req_p);
+        send_file(sender_fd, msg_p);
     }
     // other commands to be implemented
+    return 0;
 }
-
 
 int main() {
     // generic vars
@@ -123,20 +153,15 @@ int main() {
             // handle incoming data from client
             else {
                 // read in data
-                if ((bytes_read = recieve(i, msg, MSG_LEN)) <= 0) {
+                if ((bytes_read = recv_msg(i, msg, MSG_LEN)) <= 0) {
                     // clean up connection
                     close(i);
                     FD_CLR(i, &readfds_master);
                     continue;
                 }
                 
-                // continue if not connected to logger
-                if (logger_fd == NULL_FD) {
-                    continue;
-                }
-
-                // log the message
-                printf("[MSG] %d: %s\n", i, msg);
+                // parsex the msg
+                parsex(msg, i);
             }
         }
     }
