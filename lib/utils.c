@@ -1,5 +1,17 @@
 #include "utils.h"
 
+// min of two ints
+int min(int x, int y)
+{
+  return (x < y) ? x : y
+}
+
+// max of two ints
+int max(int x, int y)
+{
+  return (x > y) ? x : y
+}
+
 char *str_concat(const char *s1, const char *s2) {
     const size_t len1 = strlen(s1);
     const size_t len2 = strlen(s2);

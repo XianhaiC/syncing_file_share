@@ -31,57 +31,6 @@ int parsex(char* req) {
 }
 
 
-int send_file(int sock_fd, char* path, char* msg, int msg_len) {
-    int i;
-    long fsize;
-    FILE *fp;
-    char ch_current;
-    int eof_reached = 0;
-
-    fp = fopen(path, "r");
-
-    if (fp == NULL) {
-        perror("fopen");
-        return -1;
-    }
-
-    // first determine the total number of bytes to transfer
-    fseek(fp, 0, SEEK_END);
-    fsize = ftell(fp);
-    rewind(fp);
-
-    
-
-    while (1) {
-        // i is used to track how many chars have been buffered
-        for (i = 0; i < msg_len; i++) {
-            // get the next char
-            ch_current = fgetc(fp);
-            if (ch_current == EOF) {
-                // decrement i because we do not count this EOF char as a char
-                // to be sent
-                i--;
-                eof_reached = 1;
-                break;
-            }
-        }
-
-        // send i + 1, totaling the amount of buffered chars, bytes
-        // if i < 0 then no bytes have been buffered, so don't send anything
-        if (i >= 0) {
-            respond(sock_fd, msg, i + 1);
-        }
-
-        // break since we have reached the end of the file
-        if (eof_reached) {
-            break;
-        }
-    }
-
-    return 0;
-}
-
-
 int main() {
     // generic vars
     int i, j;
