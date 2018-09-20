@@ -36,7 +36,7 @@ int recv_msg(int sock_fd, char *msg, int msg_len) {
     memset(msg, 0, msg_len); 
     
     do {
-        if ((bc = recv(socket_fd, msg, msg_len, 0)) <= 0) {
+        if ((bc = recv(sock_fd, msg, msg_len, 0)) <= 0) {
             perror("send");
             return -1;
         }
@@ -96,7 +96,7 @@ int recv_int(int sock_fd, long *num)
     int bc;
 
     do {
-        if ((bc = read(fd, data, left)) <= 0) {
+        if ((bc = read(sock_fd, msg, left)) <= 0) {
 
             if (bc == 0) {
                 printf("selectserver: socked %d hung up\n", sock_fd);
@@ -161,7 +161,7 @@ int send_file(int sock_fd, char *path) {
         // send i + 1, totaling the amount of buffered chars, bytes
         // if i < 0 then no bytes have been buffered, so don't send anything
         if (i >= 0) {
-            if (respond(sock_fd, msg, i + 1)) {
+            if (send_msg(sock_fd, msg, i + 1)) {
                 printf("Unable to send requested file: %s", path);
                 fclose(fp);
                 return -1;
@@ -217,7 +217,7 @@ int recv_file(int sock_fd, char *path) {
         
         // write them to the filestream
         for (i = 0; i < to_read; i++) {
-            fput(msg[i], fp);
+            fputc(msg[i], fp);
         }
 
         // decrease the amount of bytes left to recieve

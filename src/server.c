@@ -1,14 +1,18 @@
 #include "../lib/macros.h"
+#include "../lib/config.h"
 #include "../lib/utils.h"
 #include "../lib/comm.h"
 
+
+// setup later
+/*
 struct command {
     char *name;
     void (*function) (void);
 };
 
-struct command commands[] {
-    {"req_file", req_file},
+struct command commands[] = {
+    {"req_file", req_file(int, char *)},
 }
 
 // get corresponding command function for command string
@@ -29,7 +33,7 @@ int (*resolve_command(char *cmd))(int, char *) {
 // command functions
 int req_file(int sock_fd, char *path) {
     return send_file(sock_fd, path);
-}
+}*/
 
 // parse and execute command
 // client commands follow the following format:
@@ -71,6 +75,10 @@ int main() {
     int addrlen; // holds length of addr struct 
     char ip_remote[INET6_ADDRSTRLEN]; // holds remote ip
     
+    // communication vars
+    char msg[MSG_LEN] = {0}; // buffer for sent and recieved messages
+    int bc = 0; // tracks the bytes communicated
+
     // vars for select
     struct timeval tv;
     fd_set readfds_master; // master set of fd's
@@ -136,11 +144,6 @@ int main() {
                     fdmax = newcon_fd;
                 }
 
-                // continue if not connected to logger
-                if (logger_fd == NULL_FD) {
-                    continue;
-                }
-
                 snprintf(msg, MSG_LEN, 
                         "New connection from %s on socket %d\n", 
                         inet_ntop(addr_remote.ss_family,
@@ -153,7 +156,7 @@ int main() {
             // handle incoming data from client
             else {
                 // read in data
-                if ((bytes_read = recv_msg(i, msg, MSG_LEN)) <= 0) {
+                if ((bc = recv_msg(i, msg, MSG_LEN)) <= 0) {
                     // clean up connection
                     close(i);
                     FD_CLR(i, &readfds_master);

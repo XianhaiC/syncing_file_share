@@ -1,4 +1,5 @@
 #include "../lib/macros.h"
+#include "../lib/config.h"
 #include "../lib/utils.h"
 #include "../lib/comm.h"
 
@@ -7,16 +8,16 @@ int main() {
     struct sockaddr_in addr_client;
     char msg[MSG_LEN];
     char path[MSG_LEN];
-    char test_file = "test1.txt";
-    char* name = getenv("USER");
+    char *test_file = "test_file1.txt";
+    char *name = getenv("USER");
 
-    if ((server_fd = initcon_remote(LOCALHOST, PORT_SERV, &addr_client)) == -1) {
+    if ((server_fd = initcon_remote(LOCALHOST, PORT_SERV, &addr_client, CON_REM_TM)) == -1) {
         exit(EXIT_FAILURE);
     }
 
     // notify server of connection
-    snprintf(msg, CMD_LENGTH, "CLIENT %s: connection established.", name);
-    if (respond(server_fd, msg) == -1) {
+    snprintf(msg, MSG_LEN, "CLIENT %s: connection established.", name);
+    if (send_msg(server_fd, msg, strlen(msg)) == -1) {
         printf("Unable to respond to server. Exiting program.\n");
     }
 

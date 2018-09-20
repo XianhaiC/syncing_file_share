@@ -3,13 +3,13 @@
 // min of two ints
 int min(int x, int y)
 {
-  return (x < y) ? x : y
+  return (x < y) ? x : y;
 }
 
 // max of two ints
 int max(int x, int y)
 {
-  return (x > y) ? x : y
+  return (x > y) ? x : y;
 }
 
 char *str_concat(const char *s1, const char *s2) {

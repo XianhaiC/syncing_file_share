@@ -5,6 +5,7 @@
 #define NULL_FD -1
 #define STDIN 0
 #define MSG_LEN 10240 // at most 10kb
+#define CON_REM_TM 20.0
 
 // util
 #define DELAY_CONN 500000
