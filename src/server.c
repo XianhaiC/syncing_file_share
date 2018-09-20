@@ -102,6 +102,9 @@ int main() {
     FD_ZERO(&readfds_master);
     FD_ZERO(&readfds_temp);
 
+    // set preliminary sockets
+    FD_SET(server_fd, &readfds_master);
+
     // set fdmax to the server socket
     fdmax = server_fd;
 
@@ -152,17 +155,19 @@ int main() {
                             INET6_ADDRSTRLEN),
                         newcon_fd);
 
+                printf("%s", msg);
             }
             // handle incoming data from client
             else {
                 // read in data
-                if ((bc = recv_msg(i, msg, MSG_LEN)) <= 0) {
+                if (recv_msg(i, msg, MSG_LEN) == -1) {
                     // clean up connection
                     close(i);
                     FD_CLR(i, &readfds_master);
                     continue;
                 }
                 
+                printf("Recieved msg: %s\n\n", msg);
                 // parsex the msg
                 parsex(msg, i);
             }

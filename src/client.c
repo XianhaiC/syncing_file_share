@@ -16,10 +16,10 @@ int main() {
     }
 
     // notify server of connection
-    snprintf(msg, MSG_LEN, "CLIENT %s: connection established.", name);
+    /*snprintf(msg, MSG_LEN, "CLIENT %s: connection established.", name);
     if (send_msg(server_fd, msg, strlen(msg)) == -1) {
         printf("Unable to respond to server. Exiting program.\n");
-    }
+    }*/
 
     printf("Client created\nName: %s\n\n", name);
     
@@ -39,12 +39,16 @@ int main() {
 
         printf("Sending request: %s\n\n", msg);
         
-        send_msg(server_fd, msg, strlen(msg));
+        send_msg(server_fd, msg, MSG_LEN, strlen(msg));
 
         memset(path, 0, MSG_LEN);
 
         strcpy(path, SYNC_ROOT_REMOTE);
         strcat(path, test_file);
         recv_file(server_fd, path);
+
+        break;
     }
+
+    return 0;
 }
