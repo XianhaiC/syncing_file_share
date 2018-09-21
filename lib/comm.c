@@ -143,9 +143,7 @@ int send_file(int sock_fd, char *path) {
     FILE *fp;
     long fsize;
     int to_send;
-    int br; // bytes read
-    int bc; // bytes communicated
-    int eof_reached = 0;
+    int bc;
 
     // open filestream of requested file
     fp = fopen(path, "r");
@@ -165,15 +163,22 @@ int send_file(int sock_fd, char *path) {
     // begin sending the file
     while (fsize > 0) {
         // buffer in a chunk of file data
-        br = fread(buf, sizeof(char), BUF_LEN, fp);
+        to_send = fread(buf, sizeof(char), BUF_LEN, fp);
 
-        // TODO: ERROR HANDLING
+        // error handling
+        if (ferror(fp)) {
+            fclose(fp);
+            return -1;
+        }
 
         // if i <= 0 then no bytes have been buffered, so don't send anything
-        if (br > 0) {
+        if (to_send > 0) {
             // determine how many bytes to send for this buffer
-            to_send = br;
             buf_p = buf;
+
+            // decrement the amount of bytes left to send by the initial value of
+            // to_send before we modified it
+            fsize -= to_send;
 
             // loop until all bytes in buffer are sent
             do {
@@ -189,10 +194,6 @@ int send_file(int sock_fd, char *path) {
                 }
             }
             while (to_send > 0);
-
-            // decrement the amount of bytes left to send by the initial value of
-            // to_send before we modified it
-            fsize -= br;
         }
     }
 
@@ -208,7 +209,6 @@ int recv_file(int sock_fd, char *path) {
     char buf[BUF_LEN];
     FILE *fp;
     long fsize;
-    int to_recv;
     int bc;
     
     // open filestream to write into
@@ -223,11 +223,8 @@ int recv_file(int sock_fd, char *path) {
 
     // continue to recieve file bytes until specified amount is reached
     while (fsize > 0) {
-        // determine how many bytes to recv for this buffer
-        to_recv = min(fsize, MSG_LEN);
-
         // recieve the bytes
-        if ((to_recv = recv(sock_fd, buf, to_recv, 0)) == -1) {
+        if ((bc = recv(sock_fd, buf, MSG_LEN, 0)) == -1) {
             perror("recv");
             printf("Unable to recieve requested file: %s", path);
             fclose(fp);
@@ -235,12 +232,16 @@ int recv_file(int sock_fd, char *path) {
         }
         
         // write them to the filestream
-        fwrite(buf, sizeof(char), BUF_LEN, fp);
+        fwrite(buf, sizeof(char), bc, fp);
 
-        // TODO: ERROR HANDLING
+        // error handling
+        if (ferror(fp)) {
+            fclose(fp);
+            return -1;
+        }
 
         // decrease the amount of bytes left to recieve
-        fsize -= to_recv;
+        fsize -= bc;
         printf("FSIZE: %ld", fsize);
     }
 
