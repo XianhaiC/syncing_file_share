@@ -138,13 +138,13 @@ int recv_int(int sock_fd, long *num)
  * sends the file at path to sock_fd
  */
 int send_file(int sock_fd, char *path) {
-    int i;
-    char msg[MSG_LEN];
-    char *msg_p;
+    char buf[BUF_LEN];
+    char *buf_p;
     FILE *fp;
     long fsize;
     int to_send;
-    int bc;
+    int br; // bytes read
+    int bc; // bytes communicated
     int eof_reached = 0;
 
     // open filestream of requested file
@@ -164,34 +164,27 @@ int send_file(int sock_fd, char *path) {
     
     // begin sending the file
     while (fsize > 0) {
-        // i is used to track how many chars have been buffered
-        for (i = 0; i < MSG_LEN; i++) {
-            // get the next char
-            msg[i] = fgetc(fp);
+        // buffer in a chunk of file data
+        br = fread(buf, sizeof(char), BUF_LEN, fp);
 
-            // stop buffering if we've reached EOF
-            if (msg[i] == EOF) {
-                eof_reached = 1;
-                break;
-            }
-        }
+        // TODO: ERROR HANDLING
 
         // if i <= 0 then no bytes have been buffered, so don't send anything
-        if (i > 0) {
+        if (br > 0) {
             // determine how many bytes to send for this buffer
-            to_send = i;
-            msg_p = msg;
+            to_send = br;
+            buf_p = buf;
 
             // loop until all bytes in buffer are sent
             do {
-                if ((bc = send(sock_fd, msg_p, to_send, 0)) == -1) {
+                if ((bc = send(sock_fd, buf_p, to_send, 0)) == -1) {
                     perror("send");
                     printf("Unable to send requested file: %s\n\n", path);
                     fclose(fp);
                     return -1;
                 }
                 else {
-                    msg_p += bc;
+                    buf_p += bc;
                     to_send -= bc;
                 }
             }
@@ -199,12 +192,7 @@ int send_file(int sock_fd, char *path) {
 
             // decrement the amount of bytes left to send by the initial value of
             // to_send before we modified it
-            fsize -= i;
-        }
-
-        // break since we have reached the EOF
-        if (eof_reached) {
-            break;
+            fsize -= br;
         }
     }
 
@@ -217,7 +205,7 @@ int send_file(int sock_fd, char *path) {
  */
 int recv_file(int sock_fd, char *path) {
     int i;
-    char msg[MSG_LEN];
+    char buf[BUF_LEN];
     FILE *fp;
     long fsize;
     int to_recv;
@@ -239,7 +227,7 @@ int recv_file(int sock_fd, char *path) {
         to_recv = min(fsize, MSG_LEN);
 
         // recieve the bytes
-        if ((to_recv = recv(sock_fd, msg, to_recv, 0)) == -1) {
+        if ((to_recv = recv(sock_fd, buf, to_recv, 0)) == -1) {
             perror("recv");
             printf("Unable to recieve requested file: %s", path);
             fclose(fp);
@@ -247,12 +235,13 @@ int recv_file(int sock_fd, char *path) {
         }
         
         // write them to the filestream
-        for (i = 0; i < to_recv; i++) {
-            fputc(msg[i], fp);
-        }
+        fwrite(buf, sizeof(char), BUF_LEN, fp);
+
+        // TODO: ERROR HANDLING
 
         // decrease the amount of bytes left to recieve
         fsize -= to_recv;
+        printf("FSIZE: %ld", fsize);
     }
 
     fclose(fp);

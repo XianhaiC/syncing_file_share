@@ -8,7 +8,8 @@ int main() {
     struct sockaddr_in addr_client;
     char msg[MSG_LEN];
     char path[MSG_LEN];
-    char *test_file = "test_file1.txt";
+    //char *test_file = "62692957_p0.png";
+    char *test_file = "test_file2.txt";
     char *name = getenv("USER");
 
     if ((server_fd = initcon_remote(LOCALHOST, PORT_SERV, &addr_client, CON_REM_TM)) == -1) {
@@ -31,7 +32,7 @@ int main() {
         memset(msg, 0, MSG_LEN);
 
         strcpy(path, SYNC_ROOT);
-        strcat(path, test_file);
+        strcat(path, TEST_FILE);
 
         strcpy(msg, RETRIEVE);
         strcat(msg, ":");
@@ -44,8 +45,10 @@ int main() {
         memset(path, 0, MSG_LEN);
 
         strcpy(path, SYNC_ROOT_REMOTE);
-        strcat(path, test_file);
+        strcat(path, TEST_FILE);
         recv_file(server_fd, path);
+
+        printf("Finished recieving file\n\n");
 
         break;
     }

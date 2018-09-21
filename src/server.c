@@ -60,6 +60,7 @@ int parsex(char* msg, int sender_fd) {
     // determine which function to call
     if (strncmp(cmd, RETRIEVE, MSG_LEN) == 0) {
         send_file(sender_fd, msg_p);
+        printf("Finished sending file\n\n");
     }
     // other commands to be implemented
     return 0;
