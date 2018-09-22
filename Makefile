@@ -5,7 +5,7 @@ LDIR = lib
 BDIR = bin
 
 CC = gcc
-CFLAGS = -I$(IDIR)
+CFLAGS = -I$(IDIR) -g
 LIBS =
 
 _DEPS = utils.h comm.h macros.h config.h

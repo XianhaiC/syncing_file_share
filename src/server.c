@@ -94,6 +94,8 @@ int main() {
         perror("listen");
         exit(EXIT_FAILURE);
     }
+    
+    printf("Socket initiated, listening for connections..\n\n");
 
     // selection processes
     tv.tv_sec = 2;
@@ -149,7 +151,7 @@ int main() {
                 }
 
                 snprintf(msg, MSG_LEN, 
-                        "New connection from %s on socket %d\n", 
+                        "New connection from %s on socket %d\n\n", 
                         inet_ntop(addr_remote.ss_family,
                             get_in_addr((struct sockaddr *) &addr_remote),
                             ip_remote,
@@ -161,7 +163,7 @@ int main() {
             // handle incoming data from client
             else {
                 // read in data
-                if (recv_msg(i, msg, MSG_LEN) == -1) {
+                if (recv_msg(i, msg, MSG_LEN) <= -1) {
                     // clean up connection
                     close(i);
                     FD_CLR(i, &readfds_master);
