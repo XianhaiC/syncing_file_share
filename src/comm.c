@@ -5,9 +5,9 @@
  * msg_len - the size of the buffer
  * to_send - the amount of bytes you wish to send
  */
-int send_msg(int sock_fd, char *msg, int msg_len, int to_send) {
-    int bc = 0; // bytes communicated
-    int bt = // bytes total
+int32_t send_msg(int sock_fd, char *msg, int32_t msg_len, int32_t to_send) {
+    int32_t bc = 0; // bytes communicated
+    int32_t bt = 0; // bytes total
 
     if (to_send > msg_len) {
         printf("send_msg: to_send is larger than buffer");
@@ -37,11 +37,11 @@ int send_msg(int sock_fd, char *msg, int msg_len, int to_send) {
  * recieves a message of size msg_len
  * msg_len - the size of the msg buffer
  */
-int recv_msg(int sock_fd, char *msg, int msg_len) {
-    int bc; // bytes communicated
-    int bt; // bytes total
+int32_t recv_msg(int sock_fd, char *msg, int32_t msg_len) {
+    int32_t bc; // bytes communicated
+    int32_t bt; // bytes total
+    int32_t to_recv;
     int stat_recv_int;
-    long to_recv;
 
 
     // recv bytes to read
@@ -78,13 +78,13 @@ int recv_msg(int sock_fd, char *msg, int msg_len) {
 /*
  *  sends a 32 bit int
  */
-int send_int(int sock_fd, int32_t num) {
+int send_uint32_t(int sock_fd, uint32_t num) {
     // convert to standard 32 bit int in network byte order
-    int32_t conv = htonl(num);
-    char *msg = (char *) &conv;
+    uint32_t conv = htonl(num);
     int left = sizeof(conv);
     int bt = left; // bytes total
     int bc;
+    char *msg = (char *) &conv;
     
     // send until no more bytes left
     do {
@@ -113,13 +113,13 @@ int send_int(int sock_fd, int32_t num) {
 /*
  *  recieves a 32 bit int
  */
-int recv_int(int sock_fd, int32_t *num)
+int recv_uint32_t(int sock_fd, uint32_t *num)
 {
-    int32_t ret;
-    char *msg = (char*) &ret;
+    uint32_t ret;
     int left = sizeof(ret);
     int bt = left; // bytes total
     int bc;
+    char *msg = (char*) &ret;
 
     do {
         if ((bc = recv(sock_fd, msg, left, 0)) <= 0) {
@@ -147,14 +147,15 @@ int recv_int(int sock_fd, int32_t *num)
 /*
  * sends the file at path to sock_fd
  */
-int send_file(int sock_fd, char *path) {
+int32_t send_file(int sock_fd, char *path) {
     char buf[BUF_LEN];
     char *buf_p;
-    FILE *fp;
-    long fsize;
-    int to_send;
-    int bc; // bytes communicated
-    int bt; // bytes total
+    FILE *fd;
+    struct stat st;
+    off_t fsize;
+    int32_t to_send;
+    int32_t bc; // bytes communicated
+    long bt; // bytes total
 
     // open filestream of requested file
     fp = fopen(path, "r");
@@ -164,9 +165,8 @@ int send_file(int sock_fd, char *path) {
     }
 
     // first determine the total number of bytes to transfer
-    fseek(fp, 0, SEEK_END);
-    fsize = ftell(fp);
-    rewind(fp);
+    fstat(fd, &st);
+    fsize = st.st_size;
 
     // send recipient file size
     send_int(sock_fd, fsize);

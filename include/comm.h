@@ -14,8 +14,8 @@
 
 int send_msg(int sock_fd, char *msg, int msg_len, int to_send);
 int recv_msg(int sock_fd, char *msg, int msg_len);
-int send_int(int sock_fd, long num);
-int recv_int(int sock_fd, long *num);
+int send_int(int sock_fd, int32_t num);
+int recv_int(int sock_fd, int32_t *num);
 int send_file(int sock_fd, char *path);
 int recv_file(int sock_fd, char *path);
 void *get_in_addr(struct sockaddr *sa);
