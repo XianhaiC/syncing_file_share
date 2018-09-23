@@ -1,0 +1,64 @@
+### SYNC PROTOCOL DESCRIPTION ###
+
+Given a server with several connected remote clients, there must be an
+established way for servers and clients to notify each other of when files have
+changed, thereby allowing the change to propogate to all other connected
+nodes. The consequent effect is that all files within the sync root are
+synced together, where a change on any connected node's directory is
+propogated to all others.
+
+Before actually transferring files amongst each other, the server and client
+must establish what needs to be sent and updated between the respective
+terminal's own sync root directory. To accomodate this process, both the server
+and and the client keep a log of files that have changed since the last sync.
+Let's refer to these files as "changelogs". If a file path/name is listed within
+the changelog of a node, then that indicates modifications have been made to
+said file in the respective node's sync root. On a client, the changelog is
+updated when a file in the sync root is modified. On a server, there exists
+a changelog for every other node it's connected with. Each changelog lists the
+files that have been modified since the last sync with the respective client. 
+The syncing process utilizes these files and proceeds as outlined below.
+
+1. The server polls the client, requesting its changelog.
+
+2. The server considers each file listed in the union of the client's changelog
+   and and the server's changelog for the client.
+    - if only the client's changelog contains the file, then the server appends
+      the file to the list of those to be retrived from the client
+    - if only the server's changelog contains the file, then the server appends
+      the file to the list of those to be sent to the client
+    - if both the client's and server's changelog contain the file, then the
+      file has conflicting versions. Append the file to the list of conflicts
+      and refer to the prescripted actions for "sync conflicts" described below.
+    - For the files that are not listed within either changelogs, they have
+      simply remained unmodified since the last sync. Therefor they require no
+      syncing.
+
+3. The server loops through each of the retrieve, send, and conflict lists to
+and updates each file according to the action related with its respective list.
+
+
+### SYNC CONFLICTS ###
+
+If both the server and a client mark a file as modified at the time of sync,
+then the file that is to persist must be chosen due to the fork in
+developement. Such a situation is considered a sync conflict. To resolve this
+issue, neither version of the file is destroyed. Instead, the client's version
+becomes marked with a different name to mark its modification by that client
+while the server's version remains the original. From there, every other client
+will recieve the first client's version of the file as well, effectively
+cementing the fork of the file and letting all clients know of its existence.
+From there, the either file can manually be modified like normal, perhaps even
+being deleted to resolve the conflict completely.
+
+The procedure to handling these situations is described below:
+
+1. If a file between the server and a client is marked as a conflict, the server
+signals to the client to modify the name of the client's version of the file to
+reflect that client's responsibility in its modifications.
+
+2. The server then sends the server's version of the file, under the files
+original name, to the client.
+
+3. The server then retrieves the client's modified file and propogates it to all
+other clients.

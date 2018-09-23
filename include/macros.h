@@ -22,4 +22,7 @@
 #define RETRIEVE "retrieve"
 #define RECIEVE "recieve"
 
+// directory files
+#define CHANGELOG_CLIENT "clog_cl"
+
 #endif
