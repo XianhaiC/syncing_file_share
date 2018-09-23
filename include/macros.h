@@ -20,5 +20,6 @@
 
 // server commands
 #define RETRIEVE "retrieve"
+#define RECIEVE "recieve"
 
 #endif

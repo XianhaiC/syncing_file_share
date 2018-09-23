@@ -53,5 +53,6 @@ int main() {
         break;
     }
 
+    close(server_fd);
     return 0;
 }

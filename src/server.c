@@ -4,15 +4,13 @@
 #include "../include/comm.h"
 
 
-// setup later
-/*
 struct command {
     char *name;
     void (*function) (void);
 };
 
 struct command commands[] = {
-    {"req_file", req_file(int, char *)},
+    {"request", req_file(int, char *)},
 }
 
 // get corresponding command function for command string
@@ -31,9 +29,15 @@ int (*resolve_command(char *cmd))(int, char *) {
 
 
 // command functions
-int req_file(int sock_fd, char *path) {
-    return send_file(sock_fd, path);
-}*/
+int request_handler(int sock_fd, char *args) {
+    int status_send_file = send_file(sock_fd, msg_p);
+    printf("request_handler: finished sending file\n\n");
+    return status_send_file;
+}
+
+int createid_handler(int sock_fd) {
+    
+}
 
 // parse and execute command
 // client commands follow the following format:
@@ -59,8 +63,9 @@ int parsex(char* msg, int sender_fd) {
     
     // determine which function to call
     if (strncmp(cmd, RETRIEVE, MSG_LEN) == 0) {
-        send_file(sender_fd, msg_p);
-        printf("Finished sending file\n\n");
+    }
+    else if (strncmp(cmd, RECIEVE, MSG_LEN) == 0) {
+       // do something 
     }
     // other commands to be implemented
     return 0;
@@ -163,7 +168,7 @@ int main() {
             // handle incoming data from client
             else {
                 // read in data
-                if (recv_msg(i, msg, MSG_LEN) <= -1) {
+                if (recv_msg(i, msg, MSG_LEN) <= 0) {
                     // clean up connection
                     close(i);
                     FD_CLR(i, &readfds_master);

@@ -1,32 +1,34 @@
-SDIR = src
-IDIR = include
-ODIR = build
-LDIR = lib
-BDIR = bin
+SRCDIR = src
+INCDIR = include
+OUTDIR = build
+LIBDIR = lib
+OBJDIR = bin
+REMDIR = test/syncroot_rem
+LOCDIR = test/syncroot_local
 
 CC = gcc
-CFLAGS = -I$(IDIR) -g
+CFLAGS = -I$(INCDIR) -g
 LIBS =
 
 _DEPS = utils.h comm.h macros.h config.h
-DEPS = $(patsubst %, $(IDIR)/%, $(_DEPS))
+DEPS = $(patsubst %, $(INCDIR)/%, $(_DEPS))
 
 _OBJ_SERV = server.o utils.o comm.o
-OBJ_SERV = $(patsubst %, $(ODIR)/%, $(_OBJ_SERV))
+OBJ_SERV = $(patsubst %, $(OUTDIR)/%, $(_OBJ_SERV))
 
 _OBJ_CLIENT = client.o utils.o comm.o
-OBJ_CLIENT = $(patsubst %, $(ODIR)/%, $(_OBJ_CLIENT))
+OBJ_CLIENT = $(patsubst %, $(OUTDIR)/%, $(_OBJ_CLIENT))
 
-$(ODIR)/%.o: $(SDIR)/%.c $(DEPS)
+$(OUTDIR)/%.o: $(SRCDIR)/%.c $(DEPS)
 	$(CC) -c -o $@ $< $(CFLAGS)
 
 server: $(OBJ_SERV)
-	$(CC) -o $(BDIR)/$@ $^ $(CFLAGS) $(LIBS)
+	$(CC) -o $(OBJDIR)/$@ $^ $(CFLAGS) $(LIBS)
 
 client: $(OBJ_CLIENT)
-	$(CC) -o $(BDIR)/$@ $^ $(CFLAGS) $(LIBS)
+	$(CC) -o $(OBJDIR)/$@ $^ $(CFLAGS) $(LIBS)
 
 .PHONY: clean
 
 clean:
-	rm -f $(ODIR)/*.o $(SDIR)/*~ $(IDIR)/*~ $(BDIR)/*
+	rm -f $(OUTDIR)/*.o $(SRCDIR)/*~ $(INCDIR)/*~ $(OBJDIR)/* $(REMDIR)/*

@@ -15,7 +15,7 @@ int32_t send_msg(int sock_fd, char *msg, int32_t msg_len, int32_t to_send) {
     }
 
     // send recipient bytes of msg to recv
-    send_int(sock_fd, to_send);
+    send_int32_t(sock_fd, to_send);
 
     // loop until all bytes in buffer are sent
     do {
@@ -45,7 +45,7 @@ int32_t recv_msg(int sock_fd, char *msg, int32_t msg_len) {
 
 
     // recv bytes to read
-    if ((stat_recv_int = recv_int(sock_fd, &to_recv)) <= 0) {
+    if ((stat_recv_int = recv_int32_t(sock_fd, &to_recv)) <= 0) {
         printf("recv_msg: socket error");
         return stat_recv_int;
     }
@@ -78,9 +78,9 @@ int32_t recv_msg(int sock_fd, char *msg, int32_t msg_len) {
 /*
  *  sends a 32 bit int
  */
-int send_uint32_t(int sock_fd, uint32_t num) {
+int send_int32_t(int sock_fd, int32_t num) {
     // convert to standard 32 bit int in network byte order
-    uint32_t conv = htonl(num);
+    int32_t conv = htonl(num);
     int left = sizeof(conv);
     int bt = left; // bytes total
     int bc;
@@ -113,9 +113,9 @@ int send_uint32_t(int sock_fd, uint32_t num) {
 /*
  *  recieves a 32 bit int
  */
-int recv_uint32_t(int sock_fd, uint32_t *num)
+int recv_int32_t(int sock_fd, int32_t *num)
 {
-    uint32_t ret;
+    int32_t ret;
     int left = sizeof(ret);
     int bt = left; // bytes total
     int bc;
@@ -150,9 +150,9 @@ int recv_uint32_t(int sock_fd, uint32_t *num)
 int32_t send_file(int sock_fd, char *path) {
     char buf[BUF_LEN];
     char *buf_p;
-    FILE *fd;
+    FILE *fp;
     struct stat st;
-    off_t fsize;
+    int32_t fsize;
     int32_t to_send;
     int32_t bc; // bytes communicated
     long bt; // bytes total
@@ -165,11 +165,12 @@ int32_t send_file(int sock_fd, char *path) {
     }
 
     // first determine the total number of bytes to transfer
-    fstat(fd, &st);
+    fstat(fileno(fp), &st);
     fsize = st.st_size;
 
     // send recipient file size
-    send_int(sock_fd, fsize);
+    // fsize is casted to an int32_t from a signed int
+    send_int32_t(sock_fd, fsize);
     bt = fsize;
     
     // begin sending the file
@@ -216,14 +217,14 @@ int32_t send_file(int sock_fd, char *path) {
 /*
  *  recieves file from sock_fd and writes it to path
  */
-int recv_file(int sock_fd, char *path) {
+int32_t recv_file(int sock_fd, char *path) {
     int i;
     char buf[BUF_LEN];
     FILE *fp;
-    long fsize;
-    int bc; // bytes communicated
-    int bt; // bytes total 
-    int stat_recv_int;
+    int32_t fsize;
+    int32_t bc; // bytes communicated
+    int32_t bt; // bytes total 
+    int32_t stat_recv_int;
     
     // open filestream to write into
     fp = fopen(path, "w");
@@ -233,7 +234,7 @@ int recv_file(int sock_fd, char *path) {
     }
 
     // recv file size
-    if ((stat_recv_int = recv_int(sock_fd, &fsize)) <= 0) {
+    if ((stat_recv_int = recv_int32_t(sock_fd, &fsize)) <= 0) {
         printf("recv_file: socket error");
         return stat_recv_int;
     }
@@ -260,7 +261,7 @@ int recv_file(int sock_fd, char *path) {
 
         // decrease the amount of bytes left to recieve
         fsize -= bc;
-        printf("FSIZE: %ld", fsize);
+        printf("FSIZE: %d", fsize);
     }
 
     fclose(fp);
