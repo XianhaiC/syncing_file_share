@@ -7,4 +7,7 @@
 #include "utils.h"
 #include "comm.h"
 
+int initialize_client_id(int server_fd);
+char **load_changelog(char *path);
+
 #endif

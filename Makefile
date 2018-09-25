@@ -1,34 +1,54 @@
 SRCDIR = src
 INCDIR = include
-OUTDIR = build
+OUTDIR = bin
 LIBDIR = lib
-OBJDIR = bin
+OBJDIR = build
 REMDIR = test/syncroot_rem
 LOCDIR = test/syncroot_local
+TESTDIR = test
 
 CC = gcc
 CFLAGS = -I$(INCDIR) -g
 LIBS =
 
-_DEPS = utils.h comm.h macros.h config.h
+_DEPS = utils.h comm.h tracker.h macros.h config.h
 DEPS = $(patsubst %, $(INCDIR)/%, $(_DEPS))
 
-_OBJ_SERV = server.o utils.o comm.o
-OBJ_SERV = $(patsubst %, $(OUTDIR)/%, $(_OBJ_SERV))
+_OBJ = utils.o comm.o tracker.o
+OBJ = $(patsubst %, $(OBJDIR)/%, $(_OBJ))
 
-_OBJ_CLIENT = client.o utils.o comm.o
-OBJ_CLIENT = $(patsubst %, $(OUTDIR)/%, $(_OBJ_CLIENT))
+_TOBJ_TRACKER_LOAD_CHANGELOG = t_tracker_load_changelog.o tracker.o
+TOBJ_TRACKER_LOAD_CHANGELOG = $(patsubst %, $(OBJDIR)/%, $(_TOBJ_TRACKER_LOAD_CHANGELOG))
 
-$(OUTDIR)/%.o: $(SRCDIR)/%.c $(DEPS)
+$(OBJDIR)/%.o: $(SRCDIR)/%.c $(DEPS)
 	$(CC) -c -o $@ $< $(CFLAGS)
-
-server: $(OBJ_SERV)
-	$(CC) -o $(OBJDIR)/$@ $^ $(CFLAGS) $(LIBS)
-
-client: $(OBJ_CLIENT)
-	$(CC) -o $(OBJDIR)/$@ $^ $(CFLAGS) $(LIBS)
 
 .PHONY: clean
 
 clean:
-	rm -f $(OUTDIR)/*.o $(SRCDIR)/*~ $(INCDIR)/*~ $(OBJDIR)/* $(REMDIR)/*
+	rm -f $(OBJDIR)/*.o $(SRCDIR)/*~ $(INCDIR)/*~ $(OUTDIR)/* $(REMDIR)/* $(TOBJDIR)/*.o $(TESTDIR)/*~ $(TINCDIR)/*~ $(TOUTDIR)/* 
+
+server: $(OBJDIR)/server.o $(OBJ)
+	$(CC) -o $(OUTDIR)/$@ $^ $(CFLAGS) $(LIBS)
+
+client: $(OBJDIR)/client.o $(OBJ)
+	$(CC) -o $(OUTDIR)/$@ $^ $(CFLAGS) $(LIBS)
+
+
+# unit test commands
+
+TINCDIR = $(TESTDIR)/include
+TOBJDIR = $(TESTDIR)/build
+TOUTDIR = $(TESTDIR)/bin
+
+CFLAGS_TEST = -I$(INCDIR) -I$(TINCDIR) -g
+
+_DEPS_TEST = test.h
+DEPS_TEST = $(patsubst %, $(TINCDIR)/%, $(_DEPS_TEST))
+
+$(TOBJDIR)/%.o: $(TESTDIR)/%.c $(DEPS) $(DEPS_TEST)
+	@echo $(DEPS)
+	$(CC) -c -o $@ $< $(CFLAGS_TEST)
+
+t_tracker_load_changelog: $(TOBJDIR)/t_tracker_load_changelog.o $(OBJ)
+	$(CC) -o $(TOUTDIR)/$@ $^ $(CFLAGS_TEST) 

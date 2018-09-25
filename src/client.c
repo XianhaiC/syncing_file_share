@@ -1,7 +1,7 @@
-#include "../include/macros.h"
-#include "../include/config.h"
-#include "../include/utils.h"
-#include "../include/comm.h"
+#include "macros.h"
+#include "config.h"
+#include "utils.h"
+#include "comm.h"
 
 int main() {
     int server_fd;

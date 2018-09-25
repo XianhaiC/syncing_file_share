@@ -23,6 +23,7 @@
 #define RECIEVE "recieve"
 
 // directory files
+#define CHANGELOG_SIZE 512
 #define CHANGELOG_CLIENT "clog_cl"
 
 #endif
