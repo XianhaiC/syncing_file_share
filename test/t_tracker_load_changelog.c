@@ -25,7 +25,7 @@ int main() {
     // create a temp changelog
     for (i = 0; i < size_arr; i++) {
         fputs(arr[i], fp); 
-        fputc('\n', fp);
+        fputc('\0', fp);
     } 
     
     fclose(fp);    
@@ -33,6 +33,6 @@ int main() {
     changelog = load_changelog("test/t_changelog");
     
     for (i = 0; changelog[i] != NULL; i++) {
-        TEST(changelog[i] == arr[i]);
+        TEST(strcmp(changelog[i], arr[i]) == 0);
     }
 }

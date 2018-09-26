@@ -8,6 +8,9 @@
 #define BUF_LEN 10240
 #define CON_REM_TM 20.0
 
+// list
+#define LIST_INIT_LEN 128
+
 // util
 #define DELAY_CONN 500000
 

@@ -34,7 +34,6 @@ char **load_changelog(char *path) {
     struct stat st;
     off_t fsize;
     char buf_file[BUF_LEN];
-
     
     int result;
     char c;
@@ -57,13 +56,13 @@ char **load_changelog(char *path) {
         memset(buf_file, 0, BUF_LEN);
         null_reached = 0;
         
-        fread(buf_file, 1, BUF_LEN, fp);
+        fread(buf_file, 1, BUF_LEN, fp_changelog);
 
         // loop through all read in characters from the file
         // the loop will exit when the end of the buffer is reached or when
         // there are at least two null terminators found in a row, signaling EOF
         for (i = 0; i < BUF_LEN; i++) {
-            if (buf_file[i] == '0') {
+            if (buf_file[i] == '\0') {
                 // end of file is reached since two nulls are in a row
                 if (null_reached >= 1) {
                     null_reached += 1;
@@ -79,13 +78,13 @@ char **load_changelog(char *path) {
                     }
 
                     // calculate the size of the path
-                    psize = strlen(buf_path);
+                    path_len = strlen(buf_path);
 
                     // allocate memory for path plus null terminator
-                    changelog[i] = (char *) calloc(psize + 1, sizeof(char));
+                    changelog[num_elements] = (char *) calloc(path_len + 1, sizeof(char));
 
                     // copy the contents of buf_path to the allocated memory
-                    strncpy(changelog[], buf_path, psize);
+                    strncpy(changelog[num_elements], buf_path, path_len);
 
                     // reset the buffer to start reading in a new file
                     memset(buf_path, 0, MSG_LEN);
@@ -101,7 +100,10 @@ char **load_changelog(char *path) {
 
             // copy char by char the path name held in buf_file to buf_path
             if (strlen(buf_path) < BUF_LEN - 1) {
-                strcat(buf_path, buf_file[i]);
+                // pass in the pointer to the ith byte of buf_file, not the
+                // dereferenced value at i, hence buf_file + i
+                // only copy 1 byte
+                strncat(buf_path, buf_file + i, 1);
             }
             
             // reset null_reached
@@ -113,45 +115,13 @@ char **load_changelog(char *path) {
         if (null_reached >= 2) {
             break;
         }
-
-
-        /*
-        if ((char) result == '0' || c == EOF) {
-            // allocate space for changelog to hold the new pointer
-            if (i >= size_changelog - 1) {
-                // double the array size
-                size_changelog *= 2;
-                changelog = realloc(changelog, sizeof(char *) * size_changelog);
-            }
-
-            // calculate the size of the path
-            psize = strlen(buf_path);
-
-            // allocate memory for path plus null terminator
-            changelog[i] = (char *) calloc(psize + 1, sizeof(char));
-
-            // copy the contents of buf_path to the allocated memory
-            strncpy(changelog[i], buf_path, psize);
-
-            // reset the buffer to start reading in a new file
-            memset(buf_path, 0, MSG_LEN);
-
-            i++;
-
-            // break at the end of file
-            if (c == EOF) {
-                break;
-            }
-        }
-        else {
-            c = (char) result;
-            
-            // append only if theres space in the buffer
-            if (strlen(buf_path) < BUF_LEN - 1) {
-                strcat(buf_path, &c);
-            }
-        }*/
     }
 
+    fclose(fp_changelog);
+
     return changelog;
+}
+
+int insert_file(char **changelog, char *file) {
+    
 }
