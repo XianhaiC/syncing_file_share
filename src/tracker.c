@@ -20,32 +20,31 @@ int initialize_client_id(int server_fd) {
 
 // in the future store filenames as hashes instead of the file name itself
 // TODO: error handling for the memory allocs
-char **load_changelog(char *path) {
+// remember to free this list too
+list *load_changelog(char *path) {
     // gen vars
     int i;
 
     // changelog vars 
-    char **changelog; // array of char *
-    int size_changelog;
-    int num_elements = 0; // tracks the current number of items
+    list *changelog; // array of char *
 
     // file vars
-    FILE *fp_changelog;
+    FILE *fp;
     struct stat st;
     off_t fsize;
     char buf_file[BUF_LEN];
     
-    int result;
-    char c;
+    // path processing vars
     char buf_path[BUF_LEN] = {0};
+    char *path_new;
     int path_len;
     int null_reached; // keeps track of when the file ends
 
-    size_changelog = CHANGELOG_SIZE;
-    changelog = calloc(size_changelog, sizeof(char *));
+    changelog = (list *) calloc(1, sizeof(list));
+    list_init(changelog, &data_free_string);
 
     // get the filestream for the changelog 
-    fp_changelog = fopen(path, "r");
+    fp = fopen(path, "r");
     
     memset(buf_path, 0, BUF_LEN);
     
@@ -56,7 +55,7 @@ char **load_changelog(char *path) {
         memset(buf_file, 0, BUF_LEN);
         null_reached = 0;
         
-        fread(buf_file, 1, BUF_LEN, fp_changelog);
+        fread(buf_file, 1, BUF_LEN, fp);
 
         // loop through all read in characters from the file
         // the loop will exit when the end of the buffer is reached or when
@@ -70,27 +69,21 @@ char **load_changelog(char *path) {
                 }
                 // else the end of this path is reached
                 else {
-                    // allocate space for changelog to hold the new pointer
-                    if (num_elements >= size_changelog - 1) {
-                        // double the array size
-                        size_changelog *= 2;
-                        changelog = realloc(changelog, sizeof(char *) * size_changelog);
-                    }
-
                     // calculate the size of the path
                     path_len = strlen(buf_path);
 
                     // allocate memory for path plus null terminator
-                    changelog[num_elements] = (char *) calloc(path_len + 1, sizeof(char));
+                    path_new = (char *) calloc(path_len + 1, sizeof(char));
 
                     // copy the contents of buf_path to the allocated memory
-                    strncpy(changelog[num_elements], buf_path, path_len);
+                    strncpy(path_new, buf_path, path_len);
+                    
+                    // append the pointer to the new path into the changelog
+                    list_append(changelog, path_new);
 
                     // reset the buffer to start reading in a new file
                     memset(buf_path, 0, MSG_LEN);
                     
-                    // increment the number of elements in changelog
-                    num_elements++;
 
                     // set null_reached
                     null_reached += 1;
@@ -117,11 +110,26 @@ char **load_changelog(char *path) {
         }
     }
 
-    fclose(fp_changelog);
+    fclose(fp);
 
     return changelog;
 }
 
-int insert_file(char **changelog, char *file) {
-    
+// writes a changelog to file
+int save_changelog(char *path, list *changelog) {
+    int i;
+    FILE *fp;
+
+    fp = fopen(path, "w"); 
+
+    // loop through all elements in changlog and write each to the file
+    for (i = 0; i < changelog->size; i++) {
+        // the strlen relies on the contents of changelog to be null terminated
+        fwrite(changelog->data[i], sizeof(char), strlen(changelog->data[i]), fp);
+        fputc('\0', fp);
+    }
+
+    fclose(fp);
+
+    return 0;
 }

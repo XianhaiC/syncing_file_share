@@ -11,14 +11,11 @@ CC = gcc
 CFLAGS = -I$(INCDIR) -g
 LIBS =
 
-_DEPS = utils.h comm.h tracker.h macros.h config.h
+_DEPS = utils.h comm.h tracker.h macros.h config.h list.h
 DEPS = $(patsubst %, $(INCDIR)/%, $(_DEPS))
 
-_OBJ = utils.o comm.o tracker.o
+_OBJ = utils.o comm.o tracker.o list.o
 OBJ = $(patsubst %, $(OBJDIR)/%, $(_OBJ))
-
-_TOBJ_TRACKER_LOAD_CHANGELOG = t_tracker_load_changelog.o tracker.o
-TOBJ_TRACKER_LOAD_CHANGELOG = $(patsubst %, $(OBJDIR)/%, $(_TOBJ_TRACKER_LOAD_CHANGELOG))
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.c $(DEPS)
 	$(CC) -c -o $@ $< $(CFLAGS)
@@ -52,3 +49,9 @@ $(TOBJDIR)/%.o: $(TESTDIR)/%.c $(DEPS) $(DEPS_TEST)
 
 t_tracker_load_changelog: $(TOBJDIR)/t_tracker_load_changelog.o $(OBJ)
 	$(CC) -o $(TOUTDIR)/$@ $^ $(CFLAGS_TEST) 
+
+t_tracker_save_changelog: $(TOBJDIR)/t_tracker_save_changelog.o $(OBJ)
+	$(CC) -o $(TOUTDIR)/$@ $^ $(CFLAGS_TEST) 
+
+t_list: $(TOBJDIR)/t_list.o $(OBJ)
+	$(CC) -o $(TOUTDIR)/$@ $^ $(CFLAGS_TEST)

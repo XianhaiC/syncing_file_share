@@ -5,8 +5,9 @@ int main() {
     // generic vars
     int i;
 
+    char *path = "test/.t_changelog";
     FILE *fp;
-    char **changelog;
+    list *changelog;
 
     // array to store
     char *arr[] = {
@@ -20,7 +21,7 @@ int main() {
     };
     int size_arr = sizeof(arr) / sizeof(char *);
 
-    fp = fopen("test/t_changelog", "w");
+    fp = fopen(path, "w");
 
     // create a temp changelog
     for (i = 0; i < size_arr; i++) {
@@ -30,9 +31,11 @@ int main() {
     
     fclose(fp);    
     
-    changelog = load_changelog("test/t_changelog");
+    changelog = load_changelog(path);
     
-    for (i = 0; changelog[i] != NULL; i++) {
-        TEST(strcmp(changelog[i], arr[i]) == 0);
+    for (i = 0; i < changelog->size; i++) {
+        TEST(strcmp(changelog->data[i], arr[i]) == 0);
     }
+
+    remove(path);
 }
