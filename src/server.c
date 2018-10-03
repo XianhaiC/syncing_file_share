@@ -28,54 +28,6 @@ int (*resolve_command(char *cmd))(int, char *) {
 }
 */
 
-// command functions
-int retrieve_handler(int sock_fd, char *args) {
-    int status_send_file = send_file(sock_fd, msg_p);
-    printf("retrieve_handler: finished sending file\n\n");
-    return status_send_file;
-}
-
-int createid_handler(int sock_fd) {
-    int status_send_msg;
-    uuid_t id_client;
-    uuid_generate(id_client);
-    status_send_msg = send_msg(sock_fd, id_client, sizeof(id_client), sizeof(id_client)); 
-    printf("createid_handler: finished sending id to client\n\n");
-    return status_send_msg;
-}
-
-// parse and execute command
-// client commands follow the following format:
-// command:arg1,arg2,...
-//
-// The following commands are:
-// retr_file:file_path
-int parsex(char* msg, int sock_fd) {
-    char cmd[MSG_LEN];
-    char *msg_p = strchr(msg, ':');
-
-    if (msg_p == NULL) {
-        printf("Command has incorrect format\n\n");
-        return -1;
-    }
-    
-    // copy the contents of the command into its own buffer
-    strncpy(cmd, msg, msg_p - msg);
-    cmd[msg_p - msg] = '\0';
-
-    // req_p now points to the arg
-    msg_p++;
-    
-    // determine which function to call
-    if (strncmp(cmd, RETRIEVE, MSG_LEN) == 0) {
-        retrieve_handler(sock_fd, msg_p);
-    }
-    else if (strncmp(cmd, RECIEVE, MSG_LEN) == 0) {
-        createid_handler(sock_fd);
-    }
-    // other commands to be implemented
-    return 0;
-}
 
 int main() {
     // generic vars

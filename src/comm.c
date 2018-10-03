@@ -34,7 +34,7 @@ int32_t send_msg(int sock_fd, char *msg, int32_t msg_len, int32_t to_send) {
 }
 
 /*
- * recieves a message of size msg_len
+ * receives a message of size msg_len
  * msg_len - the size of the msg buffer
  */
 int32_t recv_msg(int sock_fd, char *msg, int32_t msg_len) {
@@ -111,7 +111,7 @@ int send_int32_t(int sock_fd, int32_t num) {
 }
 
 /*
- *  recieves a 32 bit int
+ *  receives a 32 bit int
  */
 int recv_int32_t(int sock_fd, int32_t *num)
 {
@@ -215,7 +215,7 @@ int32_t send_file(int sock_fd, char *path) {
 }
 
 /*
- *  recieves file from sock_fd and writes it to path
+ *  receives file from sock_fd and writes it to path
  */
 int32_t recv_file(int sock_fd, char *path) {
     int i;
@@ -240,12 +240,12 @@ int32_t recv_file(int sock_fd, char *path) {
     }
     bt = fsize;
 
-    // continue to recieve file bytes until specified amount is reached
+    // continue to receive file bytes until specified amount is reached
     while (fsize > 0) {
-        // recieve the bytes
+        // receive the bytes
         if ((bc = recv(sock_fd, buf, MSG_LEN, 0)) <= 0) {
             perror("recv");
-            printf("recv_file: unable to recieve requested file: %s", path);
+            printf("recv_file: unable to receive requested file: %s", path);
             fclose(fp);
             return bc;
         }
@@ -259,7 +259,7 @@ int32_t recv_file(int sock_fd, char *path) {
             return -1;
         }
 
-        // decrease the amount of bytes left to recieve
+        // decrease the amount of bytes left to receive
         fsize -= bc;
         printf("FSIZE: %d", fsize);
     }
@@ -353,3 +353,4 @@ int initcon_remote(char *ip, int port, struct sockaddr_in *addr, float timeout) 
     // connection attempts timed out
     return -1;
 }
+

@@ -32,8 +32,6 @@ int main() {
 
     save_changelog(path, &changelog);
     
-    list_free(&changelog);
-
     changelog_new = load_changelog(path);
 
     for (i = 0; i < changelog_new->size; i++) {

@@ -3,6 +3,7 @@
 int initialize_client_id(int server_fd) {
     char msg[MSG_LEN];
     uuid_t id_client;
+    sync_info client_info;
 
     // create a string for the createid request
     snprintf(msg, MSG_LEN, 
@@ -15,8 +16,33 @@ int initialize_client_id(int server_fd) {
     recv_msg(server_fd, msg, MSG_LEN);
     
     // copy over the contents of the msg to the uuid_t
-    memcpy(id_client, msg, sizeof(id_client));
+    memcpy(client_info.id, msg, sizeof(client_info.id));
+
+    write_sync_info(&client_info);
 }
+
+int write_sync_info(sync_info *info) {
+    FILE *fp;
+    
+    // write the sync_info struct to disk
+    fp = fopen(FP_SYNC_INFO, "w");
+    fwrite(info, sizeof(info), 1, fp);
+
+    fclose(fp);
+    return 0;
+}
+
+int read_sync_info(sync_info *info) {
+    FILE *fp;
+
+    fp = fopen(FP_SYNC_INFO, "r");
+    fread(info, sizeof(info), 1, fp);
+    
+    fclose(fp);
+
+    return 0;
+}
+
 
 // in the future store filenames as hashes instead of the file name itself
 // TODO: error handling for the memory allocs

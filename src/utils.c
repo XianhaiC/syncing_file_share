@@ -20,3 +20,7 @@ char *str_concat(const char *s1, const char *s2) {
     memcpy(result+len1, s2, len2+1);
     return result;
 }
+
+/*char path_concat(char *pre, char *post) {
+    
+}*/
