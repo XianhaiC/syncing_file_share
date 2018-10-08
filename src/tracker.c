@@ -73,19 +73,18 @@ list *load_changelog(char *path) {
     // newline delimited string 
     i = 0;
     while (1) {
-        memset(buf_file, 0, BUF_LEN);
-        
         // read in hash bytes from file and store in buf_file at leftover offset
         br = fread(buf_file + lo, 1, BUF_LEN - lo, fp);
 
         // loop through all the hash bytes in the file, buffering them in
         // buckets. 
-        for (i = 0; i < br; i += SHA_DIGEST_LENGTH) {
-            // if there are not enough bytes to form a hash, as we are at the
-            // end of the bytes read into buf_file, move the leftover string 
-            // to the beggining of buf_file and continue to read more bytes 
-            // from the file from there
-            if ((lo = br - i) < SHA_DIGEST_LENGTH) {
+        for (i = 0; i < br + lo; i += sizeof(sync_file_update)) {
+            // if there are not enough bytes to form a sync_file_update, as
+            // we are at the end of the bytes read into buf_file, move the 
+            // leftover string to the beggining of buf_file and continue
+            // to read more bytes from the file from there
+            if (lo + br - i < sizeof(sync_file_update)) {
+                lo = lo + br - i;
                 strncpy(buf_file, buf_file + i, lo); 
                 break;
             }
@@ -93,8 +92,8 @@ list *load_changelog(char *path) {
             // allocate memory for new sync_file_update struct
             sfu_new = (sync_file_update *) calloc(1, sizeof(sync_file_update));
 
-            // copy the contents of buf_file to the struct's hash member
-            strncpy(sfu_new->hash, buf_file + i, SHA_DIGEST_LENGTH);
+            // copy the contents of buf_file into the new struct
+            memcpy(sfu_new->hash, buf_file + i, sizeof(sync_file_update));
 
             // append the pointer to the new struct to the changelog
             list_append(changelog, sfu_new);
@@ -120,9 +119,8 @@ int save_changelog(char *path, list *changelog) {
 
     // loop through all elements in changlog and write each to the file
     for (i = 0; i < changelog->size; i++) {
-        // the strlen relies on the contents of changelog to be null terminated
-        fwrite(changelog->data[i], sizeof(char), strlen(changelog->data[i]), fp);
-        fputc('\0', fp);
+        // write a sync_file_update to file
+        fwrite(list_get(changelog, i), sizeof(sync_file_update), 1, fp);
     }
 
     fclose(fp);

@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include "test.h"
 #include "tracker.h"
 
@@ -11,6 +12,7 @@ int main() {
     FILE *fp;
     list changelog;
     list *changelog_new;
+    sync_file_update * sfu;
 
     // array to store
     char *arr[] = {
@@ -24,10 +26,17 @@ int main() {
     };
     int size_arr = sizeof(arr) / sizeof(char *);
 
+    srand(420);
+
     list_init(&changelog, &data_free_string);
     
     for (i = 0; i < size_arr; i++) {
-        list_append(&changelog, arr[i]);
+        sfu = (sync_file_udpate *) calloc(1, sizeof(sync_file_update));
+
+        SHA1(arr[i], strlen(arr[i]), sfu->hash);
+        sfu->del = rand() % 2;
+
+        list_append(&changelog, sfu);
     }
 
     save_changelog(path, &changelog);
