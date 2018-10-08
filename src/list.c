@@ -114,3 +114,7 @@ void list_free(list *lp) {
 void data_free_string(void *str) {
     free((char *) str);
 }
+
+void data_free_sync_file_update(void *sfu) {
+    free((sync_file_update *) sfu);
+}

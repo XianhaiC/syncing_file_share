@@ -7,9 +7,11 @@ REMDIR = test/syncroot_rem
 LOCDIR = test/syncroot_local
 TESTDIR = test
 
+OSSLDIR = /usr/include/openssl
+
 CC = gcc
-CFLAGS = -I$(INCDIR) -g
-LIBS =
+LIBS = -lssl -lcrypto
+CFLAGS = -I$(INCDIR) $(LIBS) -g
 
 _DEPS = utils.h comm.h tracker.h macros.h config.h list.h
 DEPS = $(patsubst %, $(INCDIR)/%, $(_DEPS))
@@ -38,7 +40,7 @@ TINCDIR = $(TESTDIR)/include
 TOBJDIR = $(TESTDIR)/build
 TOUTDIR = $(TESTDIR)/bin
 
-CFLAGS_TEST = -I$(INCDIR) -I$(TINCDIR) -g
+CFLAGS_TEST = -I$(INCDIR) -I$(TINCDIR) $(LIBS) -g
 
 _DEPS_TEST = test.h
 DEPS_TEST = $(patsubst %, $(TINCDIR)/%, $(_DEPS_TEST))

@@ -52,86 +52,56 @@ list *load_changelog(char *path) {
     int i;
 
     // changelog vars 
-    list *changelog; // array of char *
+    list *changelog; // array of sync_file_update *
+    sync_file_update * sfu_new;
 
     // file vars
     FILE *fp;
-    struct stat st;
-    off_t fsize;
     char buf_file[BUF_LEN];
+    int br = 0; // bytes read
+    int lo = 0; // leftover bytes
     
-    // path processing vars
-    char buf_path[BUF_LEN] = {0};
-    char *path_new;
-    int path_len;
-    int null_reached; // keeps track of when the file ends
-
+    // create dynamically expanding list to hold hashes
     changelog = (list *) calloc(1, sizeof(list));
-    list_init(changelog, &data_free_string);
+    list_init(changelog, &data_free_sync_file_update);
 
     // get the filestream for the changelog 
     fp = fopen(path, "r");
     
-    memset(buf_path, 0, BUF_LEN);
     
     // loop through the file char by char, dynamically allocating space for each
     // newline delimited string 
     i = 0;
     while (1) {
         memset(buf_file, 0, BUF_LEN);
-        null_reached = 0;
         
-        fread(buf_file, 1, BUF_LEN, fp);
+        // read in hash bytes from file and store in buf_file at leftover offset
+        br = fread(buf_file + lo, 1, BUF_LEN - lo, fp);
 
-        // loop through all read in characters from the file
-        // the loop will exit when the end of the buffer is reached or when
-        // there are at least two null terminators found in a row, signaling EOF
-        for (i = 0; i < BUF_LEN; i++) {
-            if (buf_file[i] == '\0') {
-                // end of file is reached since two nulls are in a row
-                if (null_reached >= 1) {
-                    null_reached += 1;
-                    break;
-                }
-                // else the end of this path is reached
-                else {
-                    // calculate the size of the path
-                    path_len = strlen(buf_path);
-
-                    // allocate memory for path plus null terminator
-                    path_new = (char *) calloc(path_len + 1, sizeof(char));
-
-                    // copy the contents of buf_path to the allocated memory
-                    strncpy(path_new, buf_path, path_len);
-                    
-                    // append the pointer to the new path into the changelog
-                    list_append(changelog, path_new);
-
-                    // reset the buffer to start reading in a new file
-                    memset(buf_path, 0, MSG_LEN);
-                    
-
-                    // set null_reached
-                    null_reached += 1;
-                    continue;
-                }
+        // loop through all the hash bytes in the file, buffering them in
+        // buckets. 
+        for (i = 0; i < br; i += SHA_DIGEST_LENGTH) {
+            // if there are not enough bytes to form a hash, as we are at the
+            // end of the bytes read into buf_file, move the leftover string 
+            // to the beggining of buf_file and continue to read more bytes 
+            // from the file from there
+            if ((lo = br - i) < SHA_DIGEST_LENGTH) {
+                strncpy(buf_file, buf_file + i, lo); 
+                break;
             }
 
-            // copy char by char the path name held in buf_file to buf_path
-            if (strlen(buf_path) < BUF_LEN - 1) {
-                // pass in the pointer to the ith byte of buf_file, not the
-                // dereferenced value at i, hence buf_file + i
-                // only copy 1 byte
-                strncat(buf_path, buf_file + i, 1);
-            }
-            
-            // reset null_reached
-            null_reached = 0;
+            // allocate memory for new sync_file_update struct
+            sfu_new = (sync_file_update *) calloc(1, sizeof(sync_file_update));
+
+            // copy the contents of buf_file to the struct's hash member
+            strncpy(sfu_new->hash, buf_file + i, SHA_DIGEST_LENGTH);
+
+            // append the pointer to the new struct to the changelog
+            list_append(changelog, sfu_new);
         }
 
-        // EOF has been reached since there are multiple null
-        // terminators in a row
-        if (null_reached >= 2) {
+        // If EOF has been reached, we are done
+        if (feof(fp)) {
             break;
         }
     }
