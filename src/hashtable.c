@@ -1,17 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-// integer hash function found here:
-// https://stackoverflow.com/questions/664014/what-integer-hash-function-are-good-that-accepts-an-integer-hash-key
-unsigned int hash_code(unsigned int x) {
-    x = ((x >> 16) ^ x) * 0x45d9f3b;
-    x = ((x >> 16) ^ x) * 0x45d9f3b;
-    x = (x >> 16) ^ x;
-    return x;
-}
 
 // initializes hashtable
-hashtable *hashtable_init(int cap, float thresh, void (*data_free)(void *)) {
+hashtable *hashtable_init(int cap, float thresh, int (*hash_func)(void *), void (*data_free)(void *)) {
     int i;
     hashtable *ht = (hashtable *) malloc(sizeof(hashtable));
     ht->cap = cap;
@@ -144,4 +136,28 @@ int hashtable_expand(hashtable **htp) {
 
     // update the ht reference to the new hashtable
     *htp = ht_new;
+}
+
+// integer hash function found here:
+// https://stackoverflow.com/questions/664014/what-integer-hash-function-are-good-that-accepts-an-integer-hash-key
+unsigned int hash_code(void *key) {
+    unsigned int hash = *((int *) key);
+    hash = ((hash >> 16) ^ hash) * 0x45d9f3b;
+    hash = ((hash >> 16) ^ hash) * 0x45d9f3b;
+    hash = (hash >> 16) ^ hash;
+    return hash;
+}
+
+// string hash function found here:
+// https://stackoverflow.com/questions/7666509/hash-function-for-string
+unsigned int hash_uuid(void *key)
+{
+    unsigned long n = 5381;
+    uuid_t id = (uuid_t) key;
+    
+
+    while (c = *str++)
+        hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
+
+    return hash;
 }

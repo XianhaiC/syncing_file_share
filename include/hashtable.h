@@ -17,13 +17,15 @@ struct _hashtable {
     int size;
     float thresh;
     h_node **list;
+    unsigned int (*hash_func)(void *);
     void (*data_free)(void *);
 }
 
-unsigned int hash_code(unsigned int x);
 hashtable *hashtable_init(int cap, float thresh, void (*data_free)(void *));
 void hashtable_free(hashtable *ht, int free_content);
 void hashtable_insert(hashtable *ht, unsigned int key, void *val);
 void *hashtable_lookup(hashtable *ht, unsigned int key);
 int *hashtable_remove(hashtable *ht, int key);
 int hashtable_expand(hashtable **htp);
+
+unsigned int hash_code(void *key);
