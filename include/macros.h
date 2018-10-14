@@ -8,8 +8,15 @@
 #define BUF_LEN 10240
 #define CON_REM_TM 20.0
 
+// uuid
+#define LEN_UUID_T 16
+
 // list
 #define LIST_INIT_LEN 128
+
+// hashtable
+#define HT_CAP_INIT 1024
+#define HT_THRESH 0.75
 
 // util
 #define DELAY_CONN 500000

@@ -1,31 +1,32 @@
-#ifndef HASHTABLE_H
-#define HASHTABLE_H
+#ifndef HT_FILE_H
+#define HT_FILE_H
 
 #include <stdio.h>
 #include <stdlib.h>
 
-typedef struct _h_node h_node;
-typedef struct _hashtable hashtable;
-struct _h_node {
-    int key;
-    void *val;
+typedef struct _ht_node ht_node;
+typedef struct _ht_file ht_file;
+
+// key: uuit_t
+// val: unsigned int
+struct _ht_node {
+    uuid_t key;
+    unsigned int val;
     h_node *next;
 };
 
-struct _hashtable {
+struct _ht_file {
     int cap;
     int size;
     float thresh;
     h_node **list;
-    unsigned int (*hash_func)(void *);
-    void (*data_free)(void *);
 }
 
-hashtable *hashtable_init(int cap, float thresh, void (*data_free)(void *));
-void hashtable_free(hashtable *ht, int free_content);
-void hashtable_insert(hashtable *ht, unsigned int key, void *val);
-void *hashtable_lookup(hashtable *ht, unsigned int key);
-int *hashtable_remove(hashtable *ht, int key);
-int hashtable_expand(hashtable **htp);
+ht_file *ht_file_init(int cap, float thresh);
+void ht_file_free(ht_file *ht);
+void ht_file_insert(ht_file *ht, uuid_t key, unsigned int val);
+void *ht_file_lookup(ht_file *ht, uuid_t key);
+int *ht_file_remove(ht_file *ht, uuid_t key);
+int ht_file_expand(ht_file **htp);
 
-unsigned int hash_code(void *key);
+unsigned int hash_code(uuid_t key);
