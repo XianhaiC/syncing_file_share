@@ -2,44 +2,95 @@
 #include "hashtable.h"
 
 int main() {
-    char buf[BUF_LEN];
-    FILE *fp;
+    int i, j;
     char *path = "TODO";
-    char *sep = NULL;
-    char *endptr = NULL;
-    int val;
-    hashtable ht = hashtable_init(HT_CAP_INIT, HT_THRESH,
-            &hash_uuid, &hash_comp_uuid, &data_free_int);
+    FILE *fp;
+    uuid_t id;
+    unsigned int inode;
+    hashtable *ht = hashtable_init(HT_CAP_INIT, HT_THRESH);
 
     fp = fopen(path, "r");
 
-    while (fgets(buf, BUF_LEN, fp) != NULL) {
-        // set a null char where the key/val is seperated
-        sep = strchr(buf, ' ');
+    // fill hashtable with values
+    while (1) {
+        fread(id, sizeof(uuid_t), 1, fp);
+        if (feof(fp)) {
+            break;
+        }
+        fread(&inode, sizeof(unsigned int), 1, fp);
         
-        // modify buf to hold the key
-        buf[sep] = '\0';
-
-        // parse the int value
-        val = strtol(sep + 1, &endptr, 10);
-
-        // insert into table
-        hashtable_insert(ht, buf, val);
+        ht_file_insert(ht, id, inode);
     }
 
+    // check if the hashtable holds all the inserted values
     fseek(fp, 0, SEEK_SET);
+    while (1) {
+        fread(id, sizeof(uuid_t), 1, fp);
+        if (feof(fp)) {
+            break;
+        }
+        fread(&inode, sizeof(unsigned int), 1, fp);
 
-    while (fgets(buf, BUF_LEN, fp) != NULL) {
-        // set a null char where the key/val is seperated
-        sep = strchr(buf, ' ');
-        
-        // modify buf to hold the key
-        buf[sep] = '\0';
-
-        // parse the int value
-        val = strtol(sep + 1, &endptr, 10);
-
-        TEST(hashtable_lookup(ht, buf) == val);
+        TEST(*((unsigned int *) ht_file_lookup(ht, id)) == inode);
     }
-    
+
+    // check remove function by removing all inserted nodes
+    fseek(fp, 0, SEEK_SET);
+    while (1) {
+        fread(id, sizeof(uuid_t), 1, fp);
+        if (feof(fp)) {
+            break;
+        }
+        fread(&inode, sizeof(unsigned int), 1, fp);
+
+        TEST(ht_file_remove(ht, id));
+    }
+
+    TEST(ht->size == 0);
+
+    // test dynamic expansion
+
+    // create a new table with smaller capacity
+    ht_file_free(ht);
+    ht = hashtable_init(8, HT_THRESH);
+
+    // fill hashtable with values
+    fseek(fp, 0, SEEK_SET);
+    while (1) {
+        fread(id, sizeof(uuid_t), 1, fp);
+        if (feof(fp)) {
+            break;
+        }
+        fread(&inode, sizeof(unsigned int), 1, fp);
+        
+        ht_file_insert(ht, id, inode);
+    }
+
+    // check if the hashtable holds all the inserted values
+    fseek(fp, 0, SEEK_SET);
+    while (1) {
+        fread(id, sizeof(uuid_t), 1, fp);
+        if (feof(fp)) {
+            break;
+        }
+        fread(&inode, sizeof(unsigned int), 1, fp);
+
+        TEST(*((unsigned int *) ht_file_lookup(ht, id)) == inode);
+    }
+
+    // check remove function by removing all inserted nodes
+    fseek(fp, 0, SEEK_SET);
+    while (1) {
+        fread(id, sizeof(uuid_t), 1, fp);
+        if (feof(fp)) {
+            break;
+        }
+        fread(&inode, sizeof(unsigned int), 1, fp);
+
+        TEST(ht_file_remove(ht, id));
+    }
+
+    TEST(ht->size == 0);
+
+    ht_file_free(ht);
 }

@@ -16,8 +16,8 @@ struct _ht_node {
 };
 
 struct _ht_file {
-    int cap;
-    int size;
+    unsigned int cap;
+    unsigned int size;
     float thresh;
     h_node **list;
 }
@@ -29,4 +29,4 @@ void *ht_file_lookup(ht_file *ht, uuid_t key);
 int *ht_file_remove(ht_file *ht, uuid_t key);
 int ht_file_expand(ht_file **htp);
 
-unsigned int hash_code(uuid_t key);
+unsigned int hash_uuid(uuid_t key);

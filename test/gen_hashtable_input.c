@@ -14,10 +14,9 @@ unsigned int rand_large() {
 }
 
 int main() {
+    int i, j;
     char *path = "test/data/d_hashtable";
     FILE *fp;
-    int i, j;
-    char buf[BUF_SIZ];
     uuid_t id;
     unsigned int inode;
 
