@@ -1,13 +1,13 @@
 #include "test.h"
-#include "hashtable.h"
+#include "ht_file.h"
 
 int main() {
     int i, j;
-    char *path = "TODO";
+    char *path = "test/data/d_hashtable";
     FILE *fp;
     uuid_t id;
     unsigned int inode;
-    hashtable *ht = hashtable_init(HT_CAP_INIT, HT_THRESH);
+    ht_file *ht = ht_file_init(HT_CAP_INIT, HT_THRESH);
 
     fp = fopen(path, "r");
 
@@ -52,7 +52,7 @@ int main() {
 
     // create a new table with smaller capacity
     ht_file_free(ht);
-    ht = hashtable_init(8, HT_THRESH);
+    ht = ht_file_init(8, HT_THRESH);
 
     // fill hashtable with values
     fseek(fp, 0, SEEK_SET);

@@ -13,10 +13,10 @@ CC = gcc
 LIBS = -lssl -lcrypto
 CFLAGS = -I$(INCDIR) $(LIBS) -g
 
-_DEPS = utils.h comm.h tracker.h macros.h config.h list.h
+_DEPS = utils.h comm.h tracker.h macros.h config.h list.h ht_file.h
 DEPS = $(patsubst %, $(INCDIR)/%, $(_DEPS))
 
-_OBJ = utils.o comm.o tracker.o list.o
+_OBJ = utils.o comm.o tracker.o list.o ht_file.o
 OBJ = $(patsubst %, $(OBJDIR)/%, $(_OBJ))
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.c $(DEPS)
@@ -56,4 +56,7 @@ t_tracker_save_changelog: $(TOBJDIR)/t_tracker_save_changelog.o $(OBJ)
 	$(CC) -o $(TOUTDIR)/$@ $^ $(CFLAGS_TEST) 
 
 t_list: $(TOBJDIR)/t_list.o $(OBJ)
+	$(CC) -o $(TOUTDIR)/$@ $^ $(CFLAGS_TEST)
+
+t_ht_file: $(TOBJDIR)/t_ht_file.o $(OBJ)
 	$(CC) -o $(TOUTDIR)/$@ $^ $(CFLAGS_TEST)

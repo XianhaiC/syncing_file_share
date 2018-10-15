@@ -23,7 +23,7 @@ void ht_file_free(ht_file *ht) {
     // free the nodes in the list
     for (i = 0; i < ht->cap; i++) {
         // free linked list
-        node_curr = (*htp)->list[i];
+        node_curr = ht->list[i];
         while (node_curr) {
             node_tmp = node_curr;
             node_curr = node_curr->next;
@@ -38,7 +38,7 @@ void ht_file_free(ht_file *ht) {
 // inserts element into hashtable
 // returns 0 upon replacement and 1 upon insertion
 int ht_file_insert(ht_file *ht, uuid_t key, unsigned int val) {
-    unsigned int hash = hash_uuid(key) % ht->size;
+    unsigned int hash = hash_uuid(key) % ht->cap;
     ht_node *node_new;
     ht_node *node_head = ht->list[hash];
     ht_node *node_tmp = node_head;
@@ -62,7 +62,7 @@ int ht_file_insert(ht_file *ht, uuid_t key, unsigned int val) {
 
     // initialize the new node with contents
     node_new = (ht_node *) malloc(sizeof(ht_node));
-    node_new->key = key;
+    strncpy(node_new->key, key, LEN_UUID_T);
     node_new->val = val;
 
     // set it to be the new head
@@ -77,7 +77,7 @@ int ht_file_insert(ht_file *ht, uuid_t key, unsigned int val) {
 // looks up an item in the hashtable
 // returns a pointer to the val, null if not found
 void *ht_file_lookup(ht_file *ht, uuid_t key) {
-    unsigned int hash = hash_uuid(key) % ht->size;
+    unsigned int hash = hash_uuid(key) % ht->cap;
     ht_node *node_curr = ht->list[hash];
 
     // search through the linked list for key
@@ -95,7 +95,7 @@ void *ht_file_lookup(ht_file *ht, uuid_t key) {
 // removes a key val from the hashtable
 // returns 1 upon removal, 0 otherwise
 int ht_file_remove(ht_file *ht, uuid_t key) {
-    unsigned int hash = hash_uuid(key) % ht->size;
+    unsigned int hash = hash_uuid(key) % ht->cap;
     ht_node *node_curr = ht->list[hash];
     // node pointer pointer that tracks the previous node's next
     ht_node **nodep_prev = &(ht->list[hash]);
@@ -120,6 +120,7 @@ int ht_file_remove(ht_file *ht, uuid_t key) {
 }
 
 // creates a new hashtable of double size and relocates elements in the old one
+// returns the capacity of the new hashtable
 int ht_file_expand(ht_file **htp) {
     int i;
     ht_node *node_curr;
@@ -144,6 +145,8 @@ int ht_file_expand(ht_file **htp) {
 
     // update the ht reference to the new hashtable
     *htp = ht_new;
+
+    return (*htp)->cap;
 }
 
 // string hash function found here:
@@ -151,12 +154,11 @@ int ht_file_expand(ht_file **htp) {
 // TODO: test
 unsigned int hash_uuid(uuid_t key)
 {
-    unsigned long n = 5381;
-    uuid_t id = (uuid_t) key;
+    unsigned long hash = 5381;
     int i;
     
-    for (i = 0; i < LEN_UUDI_; i++) {
-        hash = ((hash << 5) + hash) + ((unsigned int) id[i]);
+    for (i = 0; i < LEN_UUID_T; i++) {
+        hash = ((hash << 5) + hash) + ((unsigned int) key[i]);
     }
     return hash;
 }
