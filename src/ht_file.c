@@ -67,6 +67,7 @@ int ht_file_insert(ht_file *ht, uuid_t key, unsigned int val) {
  
         // calculate the new hash in the larger hashtable
         hash = hash_uuid(key) % ht->cap;
+        node_head = ht->list[hash];
     }
 
     // initialize the new node with contents
