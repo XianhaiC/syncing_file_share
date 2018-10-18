@@ -10,7 +10,7 @@ TESTDIR = test
 OSSLDIR = /usr/include/openssl
 
 CC = gcc
-LIBS = -lssl -lcrypto
+LIBS = -lssl -lcrypto -luuid
 CFLAGS = -I$(INCDIR) $(LIBS) -g
 
 _DEPS = utils.h comm.h tracker.h macros.h config.h list.h ht_file.h

@@ -1,3 +1,4 @@
+#include <uuid/uuid.h>
 #include "test.h"
 #include "ht_file.h"
 
@@ -25,6 +26,14 @@ void print_ht(ht_file *ht) {
     }
 }
 
+void print_item(uuid_t id, int val, int i) {
+    for (int j = 0; j < LEN_UUID_T; j++) {
+        fprintf(stderr, "%02x", id[j]);
+    }
+    fprintf(stderr, " inode: %u index: %d\n", val, i);
+
+}
+
 int main() {
     int i, j;
     char *path = "test/data/d_hashtable";
@@ -32,10 +41,10 @@ int main() {
     uuid_t id;
     unsigned int inode;
     ht_file *ht = ht_file_init(HT_CAP_INIT, HT_THRESH);
+    uuid_t id_test;
 
     fp = fopen(path, "r");
 
-    print_ht(ht);
     // fill hashtable with values
     while (1) {
         fread(id, sizeof(uuid_t), 1, fp);
@@ -46,8 +55,6 @@ int main() {
         
         ht_file_insert(ht, id, inode);
     }
-
-    print_ht(ht);
 
     // check if the hashtable holds all the inserted values
     fseek(fp, 0, SEEK_SET);
@@ -74,8 +81,6 @@ int main() {
     }
 
     TEST(ht->size == 0);
-
-    print_ht(ht);
 
     // test dynamic expansion
 
@@ -106,8 +111,14 @@ int main() {
             break;
         }
         fread(&inode, sizeof(unsigned int), 1, fp);
-
+        
         TEST(*((unsigned int *) ht_file_lookup(ht, id)) == inode);
+    }
+
+    // check that hashtable returns NULL for values not in table
+    for (i = 0; i < 50; i++) {
+        uuid_generate(id_test);
+        TEST(ht_file_lookup(ht, id_test) == NULL);
     }
 
     // check remove function by removing all inserted nodes

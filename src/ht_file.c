@@ -44,6 +44,7 @@ void ht_file_free_list(ht_node **list, unsigned int cap) {
 // inserts element into hashtable
 // returns 0 upon replacement and 1 upon insertion
 int ht_file_insert(ht_file *ht, uuid_t key, unsigned int val) {
+    int i;
     unsigned int hash = hash_uuid(key) % ht->cap;
     ht_node *node_new;
     ht_node *node_head = ht->list[hash];
@@ -72,7 +73,11 @@ int ht_file_insert(ht_file *ht, uuid_t key, unsigned int val) {
 
     // initialize the new node with contents
     node_new = (ht_node *) malloc(sizeof(ht_node));
-    strncpy(node_new->key, key, LEN_UUID_T);
+
+    // cannot use strncpy or snprintf since uuid_t can contain null vals
+    for (i = 0; i < LEN_UUID_T; i++) {
+        (node_new->key)[i] = key[i];
+    }
     node_new->val = val;
 
     // set it to be the new head
