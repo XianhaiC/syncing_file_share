@@ -28,10 +28,11 @@ struct _ht_file {
 
 ht_file *ht_file_init(int cap, float thresh);
 void ht_file_free(ht_file *ht);
+void ht_file_free_list(ht_node **list, unsigned int cap);
 int ht_file_insert(ht_file *ht, uuid_t key, unsigned int val);
 void *ht_file_lookup(ht_file *ht, uuid_t key);
 int ht_file_remove(ht_file *ht, uuid_t key);
-int ht_file_expand(ht_file **htp);
+int ht_file_expand(ht_file *ht);
 
 unsigned int hash_uuid(uuid_t key);
 
