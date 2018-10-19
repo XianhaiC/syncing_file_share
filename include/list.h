@@ -17,6 +17,7 @@ struct _list {
     int capacity;
     void **data; // array of void pointers
     void (*data_free)(void *);
+    int (*data_comp)(void *, void *);
 };
 
 void list_init(list *lp, void (*data_free)(void *));

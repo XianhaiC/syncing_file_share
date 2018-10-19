@@ -127,3 +127,49 @@ int save_changelog(char *path, list *changelog) {
 
     return 0;
 }
+
+ht_file *load_inode_res(char *path) {
+    FILE *fp;
+    uuid_t id;
+    unsigned int inode;
+    ht_file *ht = ht_file_init(8, HT_THRESH);
+    //ht_file *ht = ht_file_init(HT_CAP_INIT, HT_THRESH);
+
+    fp = fopen(path, "r");
+
+    // fill hashtable with values
+    while (1) {
+        fread(id, sizeof(uuid_t), 1, fp);
+        if (feof(fp)) {
+            break;
+        }
+        fread(&inode, sizeof(unsigned int), 1, fp);
+        
+        ht_file_insert(ht, id, inode);
+    }
+
+    fclose(fp);
+
+    return ht;
+}
+
+int save_inode_res(ht_file *ht, char *path) {
+    int i;
+    FILE *fp;
+    ht_node *node_curr;
+
+    fp = fopen(path, "w");
+
+    for (i = 0; i < ht->cap; i++) {
+        node_curr = ht->list[i];
+        while (node_curr) {
+            fwrite(node_curr->key, sizeof(uuid_t), 1, fp);
+            fwrite(&(node_curr)->val, sizeof(unsigned int), 1, fp);
+            node_curr = node_curr->next;
+        }
+    }
+
+    fclose(fp);
+
+    return 0;
+}

@@ -9,6 +9,7 @@
 #include "utils.h"
 #include "comm.h"
 #include "list.h"
+#include "ht_file.h"
 
 // forward declaration for externally defined structs
 typedef struct _list list;
@@ -32,5 +33,7 @@ int write_sync_info(sync_info *info);
 int read_sync_info(sync_info *info);
 list *load_changelog(char *path);
 int save_changelog(char *path, list *changelog);
+ht_file *load_inode_res(char *path);
+int save_inode_res(ht_file *ht, char *path);
 
 #endif

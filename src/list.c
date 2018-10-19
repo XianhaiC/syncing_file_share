@@ -10,11 +10,30 @@
  *  lp - the pointer to the list struct
  *  data_free - the content specific free function
  */
-void list_init(list *lp, void (*data_free)(void *)) {
+void list_init(list *lp, void (*data_free)(void *), int (*data_comp)(void *, void *)) {
     lp->size = 0;
     lp->capacity = LIST_INIT_LEN;
     lp->data = malloc(sizeof(void *) * lp->capacity);
     lp->data_free = data_free;
+    lp->data_comp = data_comp;
+}
+
+/*
+ *  retrieves the element at a given index
+ *  lp - the pointer to the list struct
+ *  index - the index at which to get an element
+ */
+void *list_get(list *lp, int index) {
+    return lp->data[index];
+}
+
+/*
+ * sets the location of index with the new element
+ * lp - the pointer to the list struct
+ * element - the element to be set
+ */
+void list_set(list *lp, int index, void *element) {
+    lp->data[index] = element;
 }
 
 /*
@@ -31,15 +50,6 @@ void list_append(list *lp, void *element) {
     // set the value
     list_set(lp, lp->size, element);
     (lp->size)++;
-}
-
-/*
- *  retrieves the element at a given index
- *  lp - the pointer to the list struct
- *  index - the index at which to get an element
- */
-void *list_get(list *lp, int index) {
-    return lp->data[index];
 }
 
 /*
@@ -68,13 +78,19 @@ void list_remove(list *lp, int index) {
     (lp->size)--;
 }
 
-/*
- * sets the location of index with the new element
- * lp - the pointer to the list struct
- * element - the element to be set
- */
-void list_set(list *lp, int index, void *element) {
-    lp->data[index] = element;
+void *list_find(list *lp, void *element) {
+    int i;
+
+    for (i = 0; i < lp->size; i++) {
+        // check if element is equal item in list
+        if ((*lp->data_comp)(lp->data[i], element)) {
+            // found
+            return lp->data[i];
+        }
+    }
+    
+    // not found
+    return NULL;
 }
 
 /*
@@ -117,4 +133,8 @@ void data_free_string(void *str) {
 
 void data_free_sync_file_update(void *sfu) {
     free((sync_file_update *) sfu);
+}
+
+int data_comp_str(const void *str1, const void *str2) {
+    return strncmp((char *) str1, (char *) str2, STRCMP_LEN) == 0;
 }

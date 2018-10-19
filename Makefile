@@ -60,3 +60,6 @@ t_list: $(TOBJDIR)/t_list.o $(OBJ)
 
 t_ht_file: $(TOBJDIR)/t_ht_file.o $(OBJ)
 	$(CC) -o $(TOUTDIR)/$@ $^ $(CFLAGS_TEST)
+
+t_ht_saveload: $(TOBJDIR)/t_ht_saveload.o $(OBJ)
+	$(CC) -o $(TOUTDIR)/$@ $^ $(CFLAGS_TEST)

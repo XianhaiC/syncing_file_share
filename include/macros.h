@@ -6,6 +6,7 @@
 #define STDIN 0
 #define MSG_LEN 10240 // at most 10kb
 #define BUF_LEN 10240
+#define STRCMP_LEN 1024
 #define CON_REM_TM 20.0
 
 // uuid
@@ -29,8 +30,10 @@
 #define TIMEOUT_LOG 20.0
 
 // server commands
-#define RETRIEVE "retrieve"
-#define RECIEVE "recieve"
+#define CMD_RETRIEVE 0
+#define CMD_RECEIVE 1
+#define CMD_CREATEID 2
+#define CMD_SYNC 3
 
 // directory files
 #define CHANGELOG_SIZE 512

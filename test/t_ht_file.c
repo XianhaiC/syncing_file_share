@@ -39,9 +39,9 @@ int main() {
     char *path = "test/data/d_hashtable";
     FILE *fp;
     uuid_t id;
+    uuid_t id_test;
     unsigned int inode;
     ht_file *ht = ht_file_init(HT_CAP_INIT, HT_THRESH);
-    uuid_t id_test;
 
     fp = fopen(path, "r");
 

@@ -56,7 +56,7 @@ int ht_file_insert(ht_file *ht, uuid_t key, unsigned int val) {
         // if the key already has an entry replace val
         if (!strncmp(key, node_tmp->key, LEN_UUID_T)) {
             node_tmp->val = val;
-            return 0;
+            return 1;
         }
         node_tmp = node_tmp->next;
     }
@@ -86,7 +86,7 @@ int ht_file_insert(ht_file *ht, uuid_t key, unsigned int val) {
     
     (ht->size)++;
 
-    return 1;
+    return 0;
 }
 
 // looks up an item in the hashtable

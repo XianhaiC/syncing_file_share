@@ -1,12 +1,23 @@
 #include "server_handlers.h"
 
+// list of all callable server commands
+void (*(commands[])(int)) = {
+    &cmd_receive,
+    &cmd_retrieve,
+    &cmd_createid,
+    &cmd_sync
+}
+
 // parse and execute command
 // client commands follow the following format:
 // command:arg1,arg2,...
 //
 // The following commands are:
 // retr_file:file_path
-int parsex(char* msg, int sock_fd) {
+int parsex(int req, int sock_fd) {
+    
+    //*(commands[req])(sock_fd);
+
     char cmd[MSG_LEN];
     char *msg_p = strchr(msg, ':');
 
@@ -24,46 +35,47 @@ int parsex(char* msg, int sock_fd) {
     
     // determine which function to call
     if (strncmp(cmd, RETRIEVE, MSG_LEN) == 0) {
-        handler_retrieve(sock_fd, msg_p);
+        cmd_retrieve(sock_fd, msg_p);
     }
     else if (strncmp(cmd, CMD_RECEIVE, MSG_LEN) == 0) {
         // receive data from the client
-        handler_receive(sock_fd, msg_p);
+        cmd_receive(sock_fd, msg_p);
     }
     else if (strncmp(cmd, CMD_INITIALIZE, MSG_LEN) == 0) {
-        handler_createid(sock_fd);
+        cmd_createid(sock_fd);
         // send all the files to get the client up to speed
     }
     else if (strncmp(cmd, CMD_SYNC, MSG_LEN) == 0) {
-        handler_sync(sock_fd, msg_p); 
+        cmd_sync(sock_fd, msg_p); 
     }
     // other commands to be implemented
     return 0;
 }
 
 // command functions
-int handler_retrieve(int sock_fd, char *args) {
+int cmd_retrieve(int sock_fd, char *args) {
     int status_send_file = send_file(sock_fd, args);
-    printf("handler_retrieve: finished sending file\n\n");
+    printf("cmd_retrieve: finished sending file\n\n");
     return status_send_file;
 }
 
-int handler_receive(int sock_fd, char *args) {
+int cmd_receive(int sock_fd, char *args) {
     int status_recv_file = recv_file(sock_fd, args);
-    printf("handler_receive: finished receiving file\n\n");
+    printf("cmd_receive: finished receiving file\n\n");
     return status_send_file;
 }
 
-int handler_createid(int sock_fd) {
+int cmd_createid(int sock_fd) {
     int status_send_msg;
     uuid_t id_client;
     uuid_generate(id_client);
     status_send_msg = send_msg(sock_fd, id_client, sizeof(id_client), sizeof(id_client)); 
-    printf("handler_createid: finished sending id to client\n\n");
+    printf("cmd_createid: finished sending id to client\n\n");
     return status_send_msg;
 }
 
-int handler_sync(int sock_fd) {
+int cmd_sync(int sock_fd) {
+    int i;
     // tmp is the new changelog received from the client
     // cur is the server on disk changelog yet to be updated
     char path_cur[MSG_LEN];
@@ -72,6 +84,8 @@ int handler_sync(int sock_fd) {
     int status_comm;
 
     sync_info info_client;
+    sync_file_update *sfu_s;
+    sync_file_update *sfu_c;
     list *changelog_cur;
     list *changelog_tmp;
 
@@ -100,8 +114,33 @@ int handler_sync(int sock_fd) {
     // read in client's changelog
     changelog_tmp = load_changelog(path_tmp);
 
-    // determine the 
-    // create list of files to recieve, to send, conflicted
-    // receive files, send files
-    int status_recv_file
+    // loop through every item in changelog_tmp
+    // if item modified
+    //   if item in server cl, change client's item to copy and retrieve it
+    //   if item not in server cl then copy over as normal
+    // else item is deleted
+    //   if item in server cl then do nothing
+    //   else item not in server cl so delete server item
+    for (i = 0; i < changelog_tmp->size; i++) {
+        sfu_c = (sync_file_update *) list_get(changelog_tmp, i);
+        sfu_s = (sync_file_update *) list_find(changelog_cur, sfu_c);
+        
+        // if client's item was deleted
+        if (sfu_c->del) {
+            // if server's cl contains item
+            if (sfu_s) {
+                // tell client to rename file and copy it over
+            }
+            else {
+                // copy over file
+
+            }
+        }
+        // else it was modified
+        else {
+
+        }
+    }
 }
+
+
