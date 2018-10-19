@@ -1,7 +1,7 @@
 #include "server_handlers.h"
 
 // list of all callable server commands
-void (*(commands[])(int)) = {
+void (*(g_commands[])(int)) = {
     &cmd_receive,
     &cmd_retrieve,
     &cmd_createid,
@@ -15,45 +15,22 @@ void (*(commands[])(int)) = {
 // The following commands are:
 // retr_file:file_path
 int parsex(int req, int sock_fd) {
-    
-    //*(commands[req])(sock_fd);
-
-    char cmd[MSG_LEN];
-    char *msg_p = strchr(msg, ':');
-
-    if (msg_p == NULL) {
-        printf("Command has incorrect format\n\n");
-        return -1;
-    }
-    
-    // copy the contents of the command into its own buffer
-    strncpy(cmd, msg, msg_p - msg);
-    cmd[msg_p - msg] = '\0';
-
-    // req_p now points to the arg
-    msg_p++;
-    
-    // determine which function to call
-    if (strncmp(cmd, RETRIEVE, MSG_LEN) == 0) {
-        cmd_retrieve(sock_fd, msg_p);
-    }
-    else if (strncmp(cmd, CMD_RECEIVE, MSG_LEN) == 0) {
-        // receive data from the client
-        cmd_receive(sock_fd, msg_p);
-    }
-    else if (strncmp(cmd, CMD_INITIALIZE, MSG_LEN) == 0) {
-        cmd_createid(sock_fd);
-        // send all the files to get the client up to speed
-    }
-    else if (strncmp(cmd, CMD_SYNC, MSG_LEN) == 0) {
-        cmd_sync(sock_fd, msg_p); 
-    }
-    // other commands to be implemented
-    return 0;
+    *(g_commands[req])(sock_fd);
 }
 
 // command functions
-int cmd_retrieve(int sock_fd, char *args) {
+int cmd_upload(int sock_fd, context *cn) {
+    uuid_t inode_id;
+    int stat_comm;
+
+    stat_comm = recv_msg(sock_fd, inode_id, sizeof(uuid_t), sizeof(uuid_t));
+    if (stat_comm <= 0) {
+        // TODO: error
+        return -1;
+    }
+
+    
+
     int status_send_file = send_file(sock_fd, args);
     printf("cmd_retrieve: finished sending file\n\n");
     return status_send_file;
