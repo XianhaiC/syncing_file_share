@@ -10,12 +10,16 @@
  *  lp - the pointer to the list struct
  *  data_free - the content specific free function
  */
-void list_init(list *lp, void (*data_free)(void *), int (*data_comp)(void *, void *)) {
+list *list_init(int cap, void (*data_free)(void *), int (*data_comp)(void *, void *)) {
+    list *lp = (list *) calloc(1, sizeof(list));
+
     lp->size = 0;
-    lp->capacity = LIST_INIT_LEN;
+    lp->capacity = cap;
     lp->data = malloc(sizeof(void *) * lp->capacity);
     lp->data_free = data_free;
     lp->data_comp = data_comp;
+
+    return list;
 }
 
 /*
