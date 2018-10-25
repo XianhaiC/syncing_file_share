@@ -16,54 +16,13 @@ tree_file *tf_init() {
 int tf_insert(tree_file *tf, char *e) {
     int i;
 
-    char *tmp_f;
-    char *tmp_e;
-    char *seg;
-    char *abs;
-    unsigned int len_seg;
     list *list_seg;
     tf_node *n_curr;
     tf_node *n_next;
     int fl_inserted = 0;
     
-    // create list of path segments including the root '/'
-    // note: contents aren't freed when list is freed, they are still
-    // referenced by node objects
-    list_seg = list_init(
-            LIST_INIT_LEN, 
-            &data_free_string, 
-            &data_comp_str);
-
-    
-    // add root to list_seg
-    seg = (char *) malloc(sizeof(char) + 1);
-    strncpy(seg, "/", 1);
-    seg[1] = '\0';
-    list_append(list_seg, seg);
-
-    // set front pointer to the first non root sep seg
-    tmp_f = strchr(e, TF_SEP) + 1;
-
-    // append pointer to each dynamically allocated sep string to list_sep
-    while (tmp_e = strchr(tmp_f, TF_SEP)) {
-        // calculate length of seg
-        len_seg = tmp_e - tmp_f;
-
-        // allocate space for it
-        seg = (char *) malloc(sizeof(char) * (len_seg + 1));
-
-        // copy seg over into memory
-        strncpy(seg, tmp_f, len_seg);
-
-        // teminate it
-        seg[len_seg] = '\0';
-
-        // append seg pointer to list
-        list_append(list_seg, seg);
-
-        // reset the front pointer
-        tmp_f = tmp_e + 1;
-    }
+    // slice path into segments
+    list_seg = tf_slice(tf, e);
 
     n_curr = tf->root;
 
@@ -104,7 +63,81 @@ int tf_insert(tree_file *tf, char *e) {
 
     return fl_inserted;
 }
+
 // find in tree
+tf_node *tf_find(tree_file *tf, char *e) {
+    int i;
+
+    list *list_seg;
+    tf_node *n_curr;
+    tf_node *n_next;
+
+    list_seg = tf_slice(tf, e);
+
+    n_curr = tf->root;
+
+    // add path to tree by inserting seps
+    for (i = 0; i < list_seg->size; i++) {
+        n_next = list_find(n_curr->children, list_seg.get(i));
+
+        if (n_next == NULL) {
+            
+        }
+        else {
+            n_curr = n_next;
+        }
+    }
+}
 // remove from tree
 // write tree to disk
 // read tree from disk
+
+// helper functions
+
+// slice path into individual segments and return an in order array containing
+// them.
+// expects e to be absolute path from the sync_root, beggining with '/'
+// the returned list will not contain '/'
+// TODO: Fix end edge case where the base seg is not added since there are no
+// more seg chars
+list *tf_slice(char *e) {
+    char *tmp_f;
+    char *tmp_e;
+    char *seg;
+    unsigned int len_seg;
+    list *list_seg;
+
+    // create list of path segments including the root '/'
+    // note: contents aren't freed when list is freed, they are still
+    // referenced by node objects
+    list_seg = list_init(
+            LIST_INIT_LEN, 
+            &data_free_string, 
+            &data_comp_str);
+    
+    // set front pointer to the first non root sep seg
+    tmp_f = strchr(e, TF_SEP) + 1;
+
+    // append pointer to each dynamically allocated sep string to list_sep
+    while (tmp_e = strchr(tmp_f, TF_SEP)) {
+        // calculate length of seg
+        len_seg = tmp_e - tmp_f;
+
+        // allocate space for it
+        seg = (char *) malloc(sizeof(char) * (len_seg + 1));
+
+        // copy seg over into memory
+        strncpy(seg, tmp_f, len_seg);
+
+        // teminate it
+        seg[len_seg] = '\0';
+
+        // append seg pointer to list
+        list_append(list_seg, seg);
+
+        // reset the front pointer
+        tmp_f = tmp_e + 1;
+    }
+
+    return list_seg;
+}
