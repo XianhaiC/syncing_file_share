@@ -19,6 +19,9 @@
 #define HT_CAP_INIT 1024
 #define HT_THRESH 0.75
 
+// tree_file
+#define TF_ROOT "/"
+
 // util
 #define DELAY_CONN 500000
 
