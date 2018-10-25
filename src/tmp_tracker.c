@@ -52,27 +52,21 @@ list *load_changelog(char *path) {
     int i;
 
     // changelog vars 
-    list *changelog; // array of char *
+    list *changelog; // array of sync_file_update *
+    sync_file_update * sfu_new;
 
     // file vars
     FILE *fp;
-    struct stat st;
-    off_t fsize;
     char buf_file[BUF_LEN];
+    int br = 0; // bytes read
+    int lo = 0; // leftover bytes
     
-    // path processing vars
-    char buf_path[BUF_LEN] = {0};
-    char *path_new;
-    int path_len;
-    int null_reached; // keeps track of when the file ends
-
-    changelog = (list *) calloc(1, sizeof(list));
-    list_init(changelog, &data_free_string);
+    // create dynamically expanding list to hold paths
+    changelog = list_init(LIST_INIT_LEN, &data_free_sync_file_update);
 
     // get the filestream for the changelog 
     fp = fopen(path, "r");
     
-    memset(buf_path, 0, BUF_LEN);
     
     // loop through the file char by char, dynamically allocating space for each
     // newline delimited string 
@@ -98,11 +92,12 @@ list *load_changelog(char *path) {
                     // calculate the size of the path
                     path_len = strlen(buf_path);
 
-                    // allocate memory for path plus null terminator
-                    path_new = (char *) calloc(path_len + 1, sizeof(char));
+                    su_new = (*sfu_new) malloc(sizeof(sync_update));
 
-                    // copy the contents of buf_path to the allocated memory
-                    strncpy(path_new, buf_path, path_len);
+                    // allocate memory for path plus null terminator
+                    su_new->path = (char *) calloc(path_len + 1, sizeof(char));
+                    su_new->
+
                     
                     // append the pointer to the new path into the changelog
                     list_append(changelog, path_new);
@@ -150,9 +145,54 @@ int save_changelog(char *path, list *changelog) {
 
     // loop through all elements in changlog and write each to the file
     for (i = 0; i < changelog->size; i++) {
-        // the strlen relies on the contents of changelog to be null terminated
-        fwrite(changelog->data[i], sizeof(char), strlen(changelog->data[i]), fp);
-        fputc('\0', fp);
+        // write a sync_file_update to file
+        fwrite(list_get(changelog, i), sizeof(sync_file_update), 1, fp);
+    }
+
+    fclose(fp);
+
+    return 0;
+}
+
+ht_file *load_inode_res(char *path) {
+    FILE *fp;
+    uuid_t id;
+    unsigned int inode;
+    ht_file *ht = ht_file_init(8, HT_THRESH);
+    //ht_file *ht = ht_file_init(HT_CAP_INIT, HT_THRESH);
+
+    fp = fopen(path, "r");
+
+    // fill hashtable with values
+    while (1) {
+        fread(id, sizeof(uuid_t), 1, fp);
+        if (feof(fp)) {
+            break;
+        }
+        fread(&inode, sizeof(unsigned int), 1, fp);
+        
+        ht_file_insert(ht, id, inode);
+    }
+
+    fclose(fp);
+
+    return ht;
+}
+
+int save_inode_res(ht_file *ht, char *path) {
+    int i;
+    FILE *fp;
+    ht_node *node_curr;
+
+    fp = fopen(path, "w");
+
+    for (i = 0; i < ht->cap; i++) {
+        node_curr = ht->list[i];
+        while (node_curr) {
+            fwrite(node_curr->key, sizeof(uuid_t), 1, fp);
+            fwrite(&(node_curr)->val, sizeof(unsigned int), 1, fp);
+            node_curr = node_curr->next;
+        }
     }
 
     fclose(fp);

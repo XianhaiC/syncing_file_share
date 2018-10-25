@@ -28,6 +28,12 @@ struct _sync_file_update {
     int del;
 };
 
+// hash contains the SHA1 hash of the file path
+// del if 1 means the file is deleted, othewise it was modified
+struct _sync_update {
+    char *path; 
+    int del;
+};
 int initialize_client_id(int server_fd);
 int write_sync_info(sync_info *info);
 int read_sync_info(sync_info *info);
