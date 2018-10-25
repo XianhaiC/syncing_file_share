@@ -7,7 +7,7 @@ typedef struct _tree_file tree_file;
 struct _tf_node {
     char *p_abs;
     char *p_base;
-    tf_node parent;
+    tf_node* parent;
     list *children;
 };
 
