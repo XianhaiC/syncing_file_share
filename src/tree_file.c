@@ -28,34 +28,25 @@ int tf_insert(tree_file *tf, char *e) {
 
     // add path to tree by inserting seps
     for (i = 0; i < list_seg->size; i++) {
-        n_next = list_find(n_curr->children, list_seg.get(i));
+        // determine if n_curr has the segment as a child
+        // if so, then the path to the segment exists and can be further
+        // traversed
+        n_next = tf_node_find_base(n_curr, list_seg.get(i));
 
+        // created new segment node if it doesnt exist
         if (n_next == NULL) {
-            // create new node for the seg and add it to n_curr's children list
-            n_next = (tf_node *) malloc(sizeof(tf_node));
-            n_next->parent = n_curr;
-            n_next->p_base = list_seg.get(i);
-            list_append(n_curr->children, n_next);
+            n_next = tf_node_init(
+                    node_curr, 
+                    node_curr->p_abs, 
+                    list_get(list_set, i));
 
-            // allocate space for new abs path, including an extra byte for the
-            // sep char
-            len_abs = strlen(n_curr->p_abs) + strlen(n_next->p_base) + 2;
-            n_next->p_abs = (char *) malloc(sizeof(char) * len_abs);
-
-            // create and store abs path in node
-            // note: this copies null byte also
-            strcpy(n_next->p_abs, n_curr->p_abs);
-            strcat(n_next->p_abs, TF_SEP);
-            strcat(n_next->p_abs, n_next->p_base); 
-
-            // create empty list for children
-            // TODO: create helper methods to support node lists
-            n_next->children = list_init();
+            list_append(node_curr->children, n_next);
 
             // move onto next seg
             n_curr = n_next;
             fl_inserted = 1;
         }
+        // else move down it
         else {
             n_curr = n_next;
         }
@@ -80,16 +71,59 @@ tf_node *tf_find(tree_file *tf, char *e) {
     for (i = 0; i < list_seg->size; i++) {
         n_next = list_find(n_curr->children, list_seg.get(i));
 
+        // if n_next is null, then e is not in the tree
         if (n_next == NULL) {
-            
+            return NULL;
         }
+        // else continue to search down n_next
         else {
             n_curr = n_next;
         }
     }
+
+    return n_curr;
 }
-// remove from tree
+
+// removes leaf node from tree
+// cannot remove non leaf nodes, use tf_remove_dir instead
+int tf_remove_file(tree_file *tf, char *e) {
+    int i;
+
+    list *list_seg;
+    tf_node *n_curr;
+    tf_node *n_next;
+
+    list_seg = tf_slice(tf, e);
+
+    n_curr = tf->root;
+
+    // add path to tree by inserting seps
+    for (i = 0; i < list_seg->size; i++) {
+        n_next = list_find(n_curr->children, list_seg.get(i));
+
+        // if n_next is null, then e is not in the tree
+        if (n_next == NULL) {
+            return 0;
+        }
+        // else continue to search down n_next
+        else {
+            n_curr = n_next;
+        }
+    }
+
+    // return 0 if non leaf node
+    if (n_curr->children->size != 0) {
+        return 0   
+    }
+    else {
+        // TODO: delete node
+    }
+
+    return 1;
+}
+
 // write tree to disk
+
 // read tree from disk
 
 // helper functions
@@ -97,9 +131,7 @@ tf_node *tf_find(tree_file *tf, char *e) {
 // slice path into individual segments and return an in order array containing
 // them.
 // expects e to be absolute path from the sync_root, beggining with '/'
-// the returned list will not contain '/'
-// TODO: Fix end edge case where the base seg is not added since there are no
-// more seg chars
+// the returned list will not contain root
 list *tf_slice(char *e) {
     char *tmp_f;
     char *tmp_e;
@@ -115,13 +147,24 @@ list *tf_slice(char *e) {
             &data_free_string, 
             &data_comp_str);
     
-    // set front pointer to the first non root sep seg
-    tmp_f = strchr(e, TF_SEP) + 1;
+    tmp_f = e;
 
-    // append pointer to each dynamically allocated sep string to list_sep
-    while (tmp_e = strchr(tmp_f, TF_SEP)) {
+    // loop through all sep chars, where each precedes a path segment
+    while (tmp_f = strchr(tmp_f, TF_SEP)) {
+        // increment tmp_f to point to seg
+        tmp_f++;
+
+        // find pointer to the next sep or end of path 
+        if (!(tmp_e = strchr(tmp_f, TF_SEP))) {
+            // set tmp_e to point to end of path if no more seps to parse
+            tmp_e = strchr(tmp_f, '\0');
+        }
+
         // calculate length of seg
         len_seg = tmp_e - tmp_f;
+
+        // dont add empty segs
+        if (len_seg < 1) continue;
 
         // allocate space for it
         seg = (char *) malloc(sizeof(char) * (len_seg + 1));
@@ -134,9 +177,6 @@ list *tf_slice(char *e) {
 
         // append seg pointer to list
         list_append(list_seg, seg);
-
-        // reset the front pointer
-        tmp_f = tmp_e + 1;
     }
 
     return list_seg;

@@ -139,6 +139,19 @@ void data_free_sync_file_update(void *sfu) {
     free((sync_file_update *) sfu);
 }
 
+// dummy data_free function
+void data_free_tf_node(void *tf_node) {
+    // do nothing
+    // nodes in the list should be handled by tree_file methods and thus should
+    // be individually deleted via tree_file free
+    return;
+}
+
 int data_comp_str(const void *str1, const void *str2) {
     return strncmp((char *) str1, (char *) str2, STRCMP_LEN) == 0;
+}
+
+// dummy data_free function
+int data_comp_tf_node(const void *n1, const void *n2) {
+    return 0;
 }
