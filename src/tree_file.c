@@ -33,7 +33,7 @@ int tf_insert(tree_file *tf, char *e) {
         // traversed
         n_next = tf_node_find_base(n_curr, list_seg.get(i));
 
-        // created new segment node if it doesnt exist
+        // create new segment node if it doesnt exist
         if (n_next == NULL) {
             n_next = tf_node_init(
                     node_curr, 
@@ -69,7 +69,10 @@ tf_node *tf_find(tree_file *tf, char *e) {
 
     // add path to tree by inserting seps
     for (i = 0; i < list_seg->size; i++) {
-        n_next = list_find(n_curr->children, list_seg.get(i));
+        // determine if n_curr has the segment as a child
+        // if so, then the path to the segment exists and can be further
+        // traversed
+        n_next = tf_node_find_base(n_curr, list_seg.get(i));
 
         // if n_next is null, then e is not in the tree
         if (n_next == NULL) {
@@ -81,45 +84,8 @@ tf_node *tf_find(tree_file *tf, char *e) {
         }
     }
 
-    return n_curr;
-}
-
-// removes leaf node from tree
-// cannot remove non leaf nodes, use tf_remove_dir instead
-int tf_remove_file(tree_file *tf, char *e) {
-    int i;
-
-    list *list_seg;
-    tf_node *n_curr;
-    tf_node *n_next;
-
-    list_seg = tf_slice(tf, e);
-
-    n_curr = tf->root;
-
-    // add path to tree by inserting seps
-    for (i = 0; i < list_seg->size; i++) {
-        n_next = list_find(n_curr->children, list_seg.get(i));
-
-        // if n_next is null, then e is not in the tree
-        if (n_next == NULL) {
-            return 0;
-        }
-        // else continue to search down n_next
-        else {
-            n_curr = n_next;
-        }
-    }
-
-    // return 0 if non leaf node
-    if (n_curr->children->size != 0) {
-        return 0   
-    }
-    else {
-        // TODO: delete node
-    }
-
-    return 1;
+    // delete n_curr and all its children
+    tf_node_delete(n_curr);
 }
 
 // write tree to disk

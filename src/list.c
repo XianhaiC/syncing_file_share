@@ -62,7 +62,7 @@ void list_append(list *lp, void *element) {
  * lp - the pointer to the list struct
  * index - the index at which to remove an element
  */
-void list_remove(list *lp, int index) {
+void list_remove_at(list *lp, int index) {
     int i;
     
     // return if the item at index is NULL
@@ -80,6 +80,19 @@ void list_remove(list *lp, int index) {
     }
 
     (lp->size)--;
+}
+
+void list_remove(list *lp, void *element) {
+    int i;
+
+    for (i = 0; i < lp->size; i++) {
+        // check if element is equal item in list
+        if ((*lp->data_comp)(lp->data[i], element)) {
+            // found
+            list_remove_at(lp, i);
+        }
+    }
+    
 }
 
 void *list_find(list *lp, void *element) {
@@ -153,5 +166,6 @@ int data_comp_str(const void *str1, const void *str2) {
 
 // dummy data_free function
 int data_comp_tf_node(const void *n1, const void *n2) {
-    return 0;
+    // pointer comparison
+    return n1 == n2;
 }
