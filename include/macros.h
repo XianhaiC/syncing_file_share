@@ -21,7 +21,8 @@
 
 // tree_file
 #define TF_ROOT "/"
-#define TF_SEP '/'
+#define TF_SEP_STR "/"
+#define TF_SEP_CHAR '/'
 
 // util
 #define DELAY_CONN 500000

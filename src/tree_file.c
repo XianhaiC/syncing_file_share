@@ -7,7 +7,17 @@ tree_file *tf_init() {
     tf->size = 0;
     tf->height = 0;
 
-    tf_insert(tf, TF_ROOT);
+    // create new node
+    tf->root = (tf_node *) malloc(sizeof(tf_node));
+    tf->root->parent = NULL;
+    tf->root->p_base = strdup("");
+    tf->root->p_abs = strdup("");
+    
+    // create empty list for children
+    tf->root->children = list_init(
+            LIST_INIT_LEN, 
+            &data_free_tf_node, 
+            &data_comp_tf_node);
 
     return tf;
 }
@@ -21,8 +31,14 @@ int tf_insert(tree_file *tf, char *e) {
     tf_node *n_next;
     int fl_inserted = 0;
     
+    // if no root, create the root dir
+    if (tf->root == NULL) {
+        tf->root = tf_node_init(NULL, "", e);
+        return 1;
+    }
+
     // slice path into segments
-    list_seg = tf_slice(tf, e);
+    list_seg = tf_slice(e);
 
     n_curr = tf->root;
 
@@ -31,16 +47,17 @@ int tf_insert(tree_file *tf, char *e) {
         // determine if n_curr has the segment as a child
         // if so, then the path to the segment exists and can be further
         // traversed
-        n_next = tf_node_find_base(n_curr, list_seg.get(i));
+        // TODO something seems to be wrong with this
+        n_next = tf_node_find_base(n_curr, list_get(list_seg, i));
 
         // create new segment node if it doesnt exist
         if (n_next == NULL) {
             n_next = tf_node_init(
-                    node_curr, 
-                    node_curr->p_abs, 
-                    list_get(list_set, i));
+                    n_curr, 
+                    n_curr->p_abs, 
+                    list_get(list_seg, i));
 
-            list_append(node_curr->children, n_next);
+            list_append(n_curr->children, n_next);
 
             // move onto next seg
             n_curr = n_next;
@@ -63,7 +80,7 @@ tf_node *tf_find(tree_file *tf, char *e) {
     tf_node *n_curr;
     tf_node *n_next;
 
-    list_seg = tf_slice(tf, e);
+    list_seg = tf_slice(e);
 
     n_curr = tf->root;
 
@@ -72,7 +89,7 @@ tf_node *tf_find(tree_file *tf, char *e) {
         // determine if n_curr has the segment as a child
         // if so, then the path to the segment exists and can be further
         // traversed
-        n_next = tf_node_find_base(n_curr, list_seg.get(i));
+        n_next = tf_node_find_base(n_curr, list_get(list_seg, i));
 
         // if n_next is null, then e is not in the tree
         if (n_next == NULL) {
@@ -116,12 +133,15 @@ list *tf_slice(char *e) {
     tmp_f = e;
 
     // loop through all sep chars, where each precedes a path segment
-    while (tmp_f = strchr(tmp_f, TF_SEP)) {
+    while (tmp_f = strchr(tmp_f, TF_SEP_CHAR)) {
         // increment tmp_f to point to seg
         tmp_f++;
 
         // find pointer to the next sep or end of path 
-        if (!(tmp_e = strchr(tmp_f, TF_SEP))) {
+        if (!(tmp_e = strchr(tmp_f, TF_SEP_CHAR))) {
+            // strip any newlines
+            tmp_f[strcspn(tmp_f, "\n")] = '\0';
+
             // set tmp_e to point to end of path if no more seps to parse
             tmp_e = strchr(tmp_f, '\0');
         }

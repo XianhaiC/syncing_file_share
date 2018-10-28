@@ -20,15 +20,21 @@ struct _list {
     int (*data_comp)(void *, void *);
 };
 
-void list_init(list *lp, void (*data_free)(void *));
+list *list_init(int cap, void (*data_free)(void *),
+        int (*data_comp)(void *, void *));
 void list_append(list *lp, void *value);
 void *list_get(list *lp, int index);
-void list_remove(list *lp, int index);
+void list_remove_at(list *lp, int index);
+void list_remove(list *lp, void *element);
 void list_set(list *lp, int index, void *value);
 void list_double_capacity(list *lp);
 void list_free(list *lp);
 
 void data_free_string(void *str);
 void data_free_sync_file_update(void *sfu);
+void data_free_tf_node(void *tf_node);
+
+int data_comp_str(void *str1,  void *str2);
+int data_comp_tf_node(void *n1,  void *n2);
 
 #endif

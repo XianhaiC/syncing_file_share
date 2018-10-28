@@ -19,7 +19,7 @@ list *list_init(int cap, void (*data_free)(void *), int (*data_comp)(void *, voi
     lp->data_free = data_free;
     lp->data_comp = data_comp;
 
-    return list;
+    return lp;
 }
 
 /*
@@ -160,12 +160,12 @@ void data_free_tf_node(void *tf_node) {
     return;
 }
 
-int data_comp_str(const void *str1, const void *str2) {
+int data_comp_str(void *str1, void *str2) {
     return strncmp((char *) str1, (char *) str2, STRCMP_LEN) == 0;
 }
 
 // dummy data_free function
-int data_comp_tf_node(const void *n1, const void *n2) {
+int data_comp_tf_node(void *n1, void *n2) {
     // pointer comparison
     return n1 == n2;
 }

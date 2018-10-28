@@ -62,8 +62,7 @@ list *load_changelog(char *path) {
     int lo = 0; // leftover bytes
     
     // create dynamically expanding list to hold hashes
-    changelog = (list *) calloc(1, sizeof(list));
-    list_init(changelog, &data_free_sync_file_update);
+    changelog = list_init(LIST_INIT_LEN, &data_free_sync_file_update, NULL);
 
     // get the filestream for the changelog 
     fp = fopen(path, "r");
