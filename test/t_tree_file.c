@@ -23,7 +23,7 @@ int main() {
         node_found = tf_find(tf, buf);
         TEST(node_found != NULL);
         if (node_found != NULL) {
-            TEST(strcmp(node_found->p_abs, buf));
+            TEST(strcmp(node_found->p_abs, buf) == 0);
         }
     }
 }

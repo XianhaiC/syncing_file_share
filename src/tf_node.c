@@ -38,7 +38,7 @@ tf_node *tf_node_find_base(tf_node *n_root, char *base) {
     for (i = 0; i < n_root->children->size; i++) {
         n_query = list_get(n_root->children, i);
 
-        if (strncmp(base, n_query->p_base, STRCMP_LEN)) {
+        if (!strncmp(base, n_query->p_base, STRCMP_LEN)) {
             return n_query;
         }
     }

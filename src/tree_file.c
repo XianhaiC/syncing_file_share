@@ -101,8 +101,7 @@ tf_node *tf_find(tree_file *tf, char *e) {
         }
     }
 
-    // delete n_curr and all its children
-    tf_node_delete(n_curr);
+    return n_curr;
 }
 
 // write tree to disk
