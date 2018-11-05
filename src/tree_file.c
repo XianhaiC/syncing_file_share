@@ -112,6 +112,8 @@ void tf_save(tree_file *tf, char *path) {
 
     // traverse through all nodes
     tf_save_h(tf->root, fp);
+
+    fclose(fp);
 }
 
 void tf_save_h(tf_node *n_root, FILE *fp) {
@@ -167,7 +169,7 @@ tree_file *tf_load(char *path) {
 
         // read in number of bytes specified by to_read
         br = fread(buf_path, sizeof(char), to_read, fp);
-        buf_path[to_read + 1] = '\0';
+        buf_path[to_read] = '\0';
 
         tf_insert(tf, buf_path);
     }
