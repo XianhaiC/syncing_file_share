@@ -66,3 +66,6 @@ t_ht_saveload: $(TOBJDIR)/t_ht_saveload.o $(OBJ)
 
 t_tree_file: $(TOBJDIR)/t_tree_file.o $(OBJ)
 	$(CC) -o $(TOUTDIR)/$@ $^ $(CFLAGS_TEST)
+
+t_tf_saveload: $(TOBJDIR)/t_tf_saveload.o $(OBJ)
+	$(CC) -o $(TOUTDIR)/$@ $^ $(CFLAGS_TEST)

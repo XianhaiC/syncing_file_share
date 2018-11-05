@@ -105,8 +105,77 @@ tf_node *tf_find(tree_file *tf, char *e) {
 }
 
 // write tree to disk
+void tf_save(tree_file *tf, char *path) {
+    FILE *fp;
+
+    fp = fopen(path, "w");
+
+    // traverse through all nodes
+    tf_save_h(tf->root, fp);
+}
+
+void tf_save_h(tf_node *n_root, FILE *fp) {
+    int i;
+    unsigned int len_p_abs;
+    
+    // write to file if n_root is a leaf, otherwise recurse on children
+    // we only write leaf nodes since they represent individual files
+    // there's no need to keep track of changes to folders
+    if (n_root->children->size == 0) {
+        len_p_abs = strlen(n_root->p_abs);
+        fwrite(&len_p_abs, sizeof(unsigned int), 1, fp);
+        fwrite(n_root->p_abs, sizeof(char), len_p_abs, fp);
+
+        // no need to do anything further with children
+        return;
+    }
+
+    // recurse on children
+    for (i = 0; i < n_root->children->size; i++) {
+        tf_save_h(list_get(n_root->children, i), fp);
+    }
+}
 
 // read tree from disk
+tree_file *tf_load(char *path) {
+    tree_file *tf;
+
+    FILE *fp;
+    int br;
+    unsigned int to_read;
+    char buf_path[BUF_LEN];
+
+    // new tree_file
+    tf = tf_init();
+
+    fp = fopen(path, "r");
+
+    // read in all paths stored in file and add them to tr
+    while (1) {
+        // determine size of following path to read
+        br = fread(&to_read, sizeof(unsigned int), 1, fp);
+
+        // If EOF has been reached, we are done
+        if (feof(fp)) {
+            break;
+        }
+
+        // truncate to_read if too large
+        if (to_read >= BUF_LEN) {
+            to_read = BUF_LEN - 1;
+        }
+
+        // read in number of bytes specified by to_read
+        br = fread(buf_path, sizeof(char), to_read, fp);
+        buf_path[to_read + 1] = '\0';
+
+        tf_insert(tf, buf_path);
+    }
+
+    return tf;
+}
+
+void tf_delete(tree_file *tf) {}
 
 // helper functions
 
@@ -117,6 +186,7 @@ tf_node *tf_find(tree_file *tf, char *e) {
 list *tf_slice(char *e) {
     char *tmp_f;
     char *tmp_e;
+    char *tmp_u;
     char *seg;
     unsigned int len_seg;
     list *list_seg;
@@ -139,10 +209,15 @@ list *tf_slice(char *e) {
         // find pointer to the next sep or end of path 
         if (!(tmp_e = strchr(tmp_f, TF_SEP_CHAR))) {
             // strip any newlines
-            tmp_f[strcspn(tmp_f, "\n")] = '\0';
-
-            // set tmp_e to point to end of path if no more seps to parse
-            tmp_e = strchr(tmp_f, '\0');
+            // strchrnul will otherwise set tmp_e to point to the null byte in
+            // the path
+            tmp_e = strchr(tmp_f, '\n');
+            if (tmp_e != NULL) {
+                *tmp_e = '\0';
+            }
+            else {
+                tmp_e = strchr(tmp_f, '\0');
+            }
         }
 
         // calculate length of seg

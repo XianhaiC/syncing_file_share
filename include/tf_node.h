@@ -10,6 +10,7 @@ struct _tf_node {
     char *p_base;
     tf_node* parent;
     list *children;
+    int del;
 };
 
 tf_node *tf_node_init(tf_node *parent, char *p_abs, char *p_base);
