@@ -19,7 +19,7 @@ int parsex(int req, int sock_fd) {
 }
 
 // command functions
-int cmd_upload(int sock_fd, context *cn) {
+int cmd_upload(int sock_fd) {
     uuid_t inode_id;
     int stat_comm;
 
@@ -34,8 +34,14 @@ int cmd_upload(int sock_fd, context *cn) {
     return status_send_file;
 }
 
-int cmd_receive(int sock_fd, char *args) {
-    int status_recv_file = recv_file(sock_fd, args);
+int cmd_receive(int sock_fd) {
+    char msg[MSG_LEN] = {0};
+    int stat_comm;
+    
+    // recv file name
+    stat_comm = revc_msg(sock_fd, msg, MSG_LEN);
+    
+    int status_recv_file = recv_file(sock_fd, msg);
     printf("cmd_receive: finished receiving file\n\n");
     return status_send_file;
 }

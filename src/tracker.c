@@ -172,3 +172,52 @@ int save_inode_res(ht_file *ht, char *path) {
 
     return 0;
 }
+
+// duplicated files are created when conflict arises between the server and
+// client's instances of a shared file
+// the file is duplicated on the client's side, marking it in the following
+// format
+// <filename.ext>.dup~<clientid>
+// should another conflict concerning the same file and client arise before the
+// previous dup file was resolved and deleted, the previous one gets overwritten
+// should the dup file itself be the conflicted file, always accept the client's
+// edit, (does not have to be dup file's original client that causes the
+// conflict)
+// this causes the last edit by any client to take place
+// 
+void file_dup(char *path_ori, uuid_t id) {
+    FILE *fp_ori;
+    FILE *fp_dup;
+    char path_dup[BUF_LEN] = {0};
+    char buf[BUF_LEN];
+    unsigned int br;
+
+    // create path_dup with format:
+    // <path>.dup~<id>
+    strcpy(path_dup, path_ori);
+    strcat(path_dup, DUP_EXT);
+    strncat(path_dup, id, sizeof(uuid_t));
+
+    // check that original file exists
+    if (access(path_ori, F_OK) == -1) {
+        return;
+    }
+    
+    // open relevant files
+    fp_ori = fopen(path_ori, "r");
+    fp_dup = fopen(path_dup, "w"); 
+
+    while (1) {
+        // read contents into buf
+        br = fread(buf, sizeof(char), BUF_LEN, fp_ori);
+        // write contents to dupe file
+        fwrite(buf, sizeof(char), br, fp_dup);
+        
+        // If EOF has been reached, we are done
+        if (feof(fp)) {
+            break;
+        }
+    }
+
+    return;
+}

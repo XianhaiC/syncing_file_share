@@ -65,6 +65,7 @@ int32_t recv_msg(int sock_fd, char *msg, int32_t msg_len) {
             printf("recv_msg: socket error");
             return bc;
         }
+        char 
         else {
             msg += bc;
             to_recv -= bc;

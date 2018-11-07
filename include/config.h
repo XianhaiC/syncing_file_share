@@ -10,6 +10,7 @@
 #define SYNC_IP "127.0.0.1"
 #define TEST_FILE "/test_file2.txt"
 #define CHANGELOG_TMP "_tmp"
+#define DUP_EXT ".dup~"
 
 // file permissions
 #define PERM_CHANGELOG 0755
