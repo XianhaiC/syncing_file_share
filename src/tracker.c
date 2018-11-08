@@ -184,40 +184,9 @@ int save_inode_res(ht_file *ht, char *path) {
 // edit, (does not have to be dup file's original client that causes the
 // conflict)
 // this causes the last edit by any client to take place
-// 
-void file_dup(char *path_ori, uuid_t id) {
-    FILE *fp_ori;
-    FILE *fp_dup;
-    char path_dup[BUF_LEN] = {0};
-    char buf[BUF_LEN];
-    unsigned int br;
-
-    // create path_dup with format:
-    // <path>.dup~<id>
-    strcpy(path_dup, path_ori);
-    strcat(path_dup, DUP_EXT);
-    strncat(path_dup, id, sizeof(uuid_t));
-
-    // check that original file exists
-    if (access(path_ori, F_OK) == -1) {
-        return;
-    }
-    
-    // open relevant files
-    fp_ori = fopen(path_ori, "r");
-    fp_dup = fopen(path_dup, "w"); 
-
-    while (1) {
-        // read contents into buf
-        br = fread(buf, sizeof(char), BUF_LEN, fp_ori);
-        // write contents to dupe file
-        fwrite(buf, sizeof(char), br, fp_dup);
-        
-        // If EOF has been reached, we are done
-        if (feof(fp)) {
-            break;
-        }
-    }
-
-    return;
+void sync_conflict_resolve(char *path_ori, uuid_t id) {
+    // if not a .dup file create a dup of it
+    // else overrite the dup
 }
+
+
