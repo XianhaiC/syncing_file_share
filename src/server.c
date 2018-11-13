@@ -41,6 +41,7 @@ int main() {
     
     // communication vars
     char msg[MSG_LEN] = {0}; // buffer for sent and recieved messages
+    int32_t cmd;
     int bc = 0; // tracks the bytes communicated
 
     // vars for select
@@ -126,16 +127,16 @@ int main() {
             // handle incoming data from client
             else {
                 // read in data
-                if (recv_msg(i, msg, MSG_LEN) <= 0) {
+                if (recv_int32_t(i, &cmd) <= 0) {
                     // clean up connection
                     close(i);
                     FD_CLR(i, &readfds_master);
                     continue;
                 }
                 
-                printf("Recieved msg: %s\n\n", msg);
+                printf("Recieved cmd: %s\n\n", cmd);
                 // parsex the msg
-                parsex(msg, i);
+                parsex(cmd, i);
             }
         }
     }

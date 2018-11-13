@@ -1,5 +1,7 @@
 /*
  *  dynamically expanding generic list to hold void pointers
+ *  TODO: remove list's responsibility of free'ing its contents, that should be
+ *  handled elsewhere
  */
 
 #include "list.h"

@@ -19,19 +19,12 @@ int parsex(int req, int sock_fd) {
 }
 
 // command functions
-int cmd_upload(int sock_fd) {
-    uuid_t inode_id;
+int cmd_upload(int sock_fd, char *file) {
     int stat_comm;
 
-    stat_comm = recv_msg(sock_fd, inode_id, sizeof(uuid_t), sizeof(uuid_t));
-    if (stat_comm <= 0) {
-        // TODO: error
-        return -1;
-    }
-
-    int status_send_file = send_file(sock_fd, args);
+    stat_comm = send_file(sock_fd, file);
     printf("cmd_retrieve: finished sending file\n\n");
-    return status_send_file;
+    return stat_comm;
 }
 
 int cmd_download(int sock_fd) {
@@ -59,12 +52,13 @@ int cmd_sync(int sock_fd) {
     sync_s_sync_client(sock_fd);
 }
 
-/* traverse through every leaf node in changelog_tmp
- *
- * if item in server cl
- *   if modified, change client's item to copy and retrieve it
- *   else del, so do nothing
- * else item not in server cl
- *   if modified, copy over as normal
- *   else del, delete from server
- */
+int hl_upload(int sock_fd) {
+    uuid_t inode_id;
+    char msg[MSG_LEN] = {0};
+    int stat_comm;
+    
+    // recv the file clients wishes to obtain
+    stat_comm = recv_msg(sock_fd, msg, MSG_LEN, MSG_LEN);
+
+    return cmd_upload(sock_fdm, msg);
+}

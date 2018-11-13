@@ -15,6 +15,12 @@ void sync_s_sync_client(int sock_fd) {
     tree_file *changelog_curr;
     tree_file *changelog_tmp;
 
+    list *l_conf_curr;
+    list *l_conf_tmp;
+
+    char *path_conf;
+    char *tmp;
+
     // receive the client's info
     status_comm = recv_msg(sock_fd, info_client.id, 
             sizeof(info_client.id), sizeof(info_client.id));
@@ -40,30 +46,52 @@ void sync_s_sync_client(int sock_fd) {
     // read in client's changelog
     changelog_tmp = tf_load(path_tmp);
 
-    for (i = 0; i < changelog_tmp->size; i++) {
-        sfu_c = (sync_file_update *) list_get(changelog_tmp, i);
-        sfu_s = (sync_file_update *) list_find(changelog_cur, sfu_c);
+    // init lists to hold conflicted nodes
+    l_conf_curr = list_init(LIST_INIT_LEN, &data_comp_tf_node);
+    l_conf_tmp = list_init(LIST_INIT_LEN, &data_comp_tf_node);
+
+    // init trees to hold changelog files
+    changelog_curr = tf_load(path_curr);
+    changelog_tmp = tf_load(path_tmp);
+
+    cmd_sync_h(changelog_tmp->root, changelog_curr, 
+            l_conf_curr, l_conf_tmp);
+
+    // loop through all conflicted nodes and sync them
+    for (i = 0; i < l_conf_curr->size; i++) {
+        path_conf = ((tf_node *) list_get(l_conf_curr, i))->p_abs;
         
-        // if client's item was deleted
-        if (sfu_c->del) {
-            // if server's cl contains item
-            if (sfu_s) {
-                // tell client to rename file and copy it over
-            }
-            else {
-                // copy over file
-
-            }
+        // if the conflicted file is not a dup file, solve the conflict as per
+        // usual
+        tmp = strstr(list_get(l_conf_curr, i), DUP_EXT);
+        if (tmp != NULL) {
+            sc_conflict_res(sock_fd, path_conf, info_client.id);
         }
-        // else it was modified
+        // otherwise, since we don't wish to create dup files of dup files,
+        // the server has priority and will overwrite changes client made to
+        // local dup file
         else {
-
+            // TODO: revamp communication methods
+            // they should be server centered
+            // this means that if a client ever needs anything, it must send the
+            // server a request with all the necessary info
+            // the server will then perform any other necessary things by
+            // calling client side functions in preparation of recieveing
+            // things
+            // as such, the client no longer needs to premptively begin any comm
+            // actions, and should wait for the server to initiate them. 
+            // basically, the client requests the server to do something, and
+            // then the server will take it from there
+            // TODO: Create reqs reqc cmds cmdc functions to handle dedicated
+            // server/client request commands
+            stat_comm = reqc_confres(sock_fd, path_conf);
         }
+
     }
 }
 
 void cmd_sync_h(tf_node *n_root, tree_file *changelog_curr,
-        list *l_conf_serv, list *l_conf_client) {
+        list *l_conf_curr, list *l_conf_tmp) {
     tf_node *n_query_curr;
 
     // we're only concerned with leaf nodes since those represent files
@@ -76,12 +104,17 @@ void cmd_sync_h(tf_node *n_root, tree_file *changelog_curr,
             // if item modified, add both nodes to list to be transfered
             // later
             if (!n_root->del) {
-                // tell client to create a copy and return it
-                list_append(l_conf_curr, n_query_curr);
-                list_append(l_conf_tmp, n_root);
+                // if both nodes are edited, then save them into list for later
+                // syncing 
+                if (!n_query_curr->del) {
+                    list_append(l_conf_curr, n_query_curr);
+                    list_append(l_conf_tmp, n_root);
+                }
+                
+                // copy tmp over    
             }
 
-            // copy file from tmp changelog over
+            // do nothing
         }
         else {
             // if item modified

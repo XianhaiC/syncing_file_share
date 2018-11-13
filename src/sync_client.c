@@ -14,8 +14,13 @@ sc_conflict_res(int sock_fd, char *path_ori, uuid_t id) {
     // create the dup file
     sc_file_dup(path_ori, path_dup, id);
 
-    // send the dup file to the server
-    status_send_file = send_file(sock_fd, path_dup);
+    // TODO: we want the server to copy over this file. So, we must inform the
+    // server to call its hl_download. To do this, create dedicated request
+    // functions that communicate with the server this way
+    // Remember that the server and client will split off individual threads
+    // upon requests. This way they can take more requests while others are
+    // running
+    stat_comm = req_download(sock_fd, path_dup);
 }
 
 void sc_get_dup_path(char *path_ori, char *path_dup, uuit_t id) {

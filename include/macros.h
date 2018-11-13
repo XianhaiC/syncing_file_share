@@ -35,10 +35,13 @@
 #define TIMEOUT_LOG 20.0
 
 // server commands
-#define CMD_RETRIEVE 0
-#define CMD_RECEIVE 1
-#define CMD_CREATEID 2
-#define CMD_SYNC 3
+#define CMD_S_RETRIEVE 0
+#define CMD_S_RECEIVE 1
+#define CMD_S_CREATEID 2
+#define CMD_S_SYNC 3
+
+// client commands
+#define CMD_C_CONFRES 0
 
 // directory files
 #define CHANGELOG_SIZE 512
