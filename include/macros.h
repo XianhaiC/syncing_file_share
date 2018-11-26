@@ -43,6 +43,9 @@
 // client commands
 #define CMD_C_CONFRES 0
 
+// cmdreq util
+#define RESP_SUCCESS 1
+
 // directory files
 #define CHANGELOG_SIZE 512
 #define CHANGELOG_CLIENT "clog_cl"

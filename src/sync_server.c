@@ -1,12 +1,12 @@
 
-void sync_s_sync_client(int sock_fd) {
+void ss_sync(int sock_fd) {
     int i;
     // tmp is the new changelog received from the client
     // cur is the server on disk changelog yet to be updated
     char path_curr[MSG_LEN];
     char path_tmp[MSG_LEN];
 
-    int status_comm;
+    int response;
 
     sync_info info_client;
     sync_file_update *sfu_s;
@@ -54,7 +54,7 @@ void sync_s_sync_client(int sock_fd) {
     changelog_curr = tf_load(path_curr);
     changelog_tmp = tf_load(path_tmp);
 
-    cmd_sync_h(changelog_tmp->root, changelog_curr, 
+    ss_h_sync(changelog_tmp->root, changelog_curr, 
             l_conf_curr, l_conf_tmp);
 
     // loop through all conflicted nodes and sync them
@@ -65,7 +65,10 @@ void sync_s_sync_client(int sock_fd) {
         // usual
         tmp = strstr(list_get(l_conf_curr, i), DUP_EXT);
         if (tmp != NULL) {
+            // get the client to create its copy of the conflicted file
             sc_conflict_res(sock_fd, path_conf, info_client.id);
+
+            // download the copy file over
         }
         // otherwise, since we don't wish to create dup files of dup files,
         // the server has priority and will overwrite changes client made to
@@ -83,15 +86,16 @@ void sync_s_sync_client(int sock_fd) {
             // basically, the client requests the server to do something, and
             // then the server will take it from there
             // TODO: Create reqs reqc cmds cmdc functions to handle dedicated
-            // server/client request commands
-            stat_comm = reqc_confres(sock_fd, path_conf);
+            
+            response = cmd_h_dupe(sock_fd, path_conf, info_client.id);
         }
-
     }
 }
 
-void cmd_sync_h(tf_node *n_root, tree_file *changelog_curr,
-        list *l_conf_curr, list *l_conf_tmp) {
+// recursive helper method to traverse changelog file tree
+void ss_h_sync(int sock_fd, tf_node *n_root, tree_file *changelog_curr,
+        list *l_conf_curr, list *l_conf_tmp, uuid_t client_id) {
+    int response;
     tf_node *n_query_curr;
 
     // we're only concerned with leaf nodes since those represent files
@@ -110,20 +114,30 @@ void cmd_sync_h(tf_node *n_root, tree_file *changelog_curr,
                     list_append(l_conf_curr, n_query_curr);
                     list_append(l_conf_tmp, n_root);
                 }
-                
-                // copy tmp over    
-            }
+                else {
+                    // copy changelog_tmp's file over    
+                    response = ss_h_dupe(sock_fd, n_root->p_abs, client_id);
 
-            // do nothing
+                    // request client to delete its original file
+                    response = reqc_delete(sock_fd, n_root->p_abs);
+                }
+            }
+            
+            // do nothing otherwise
+            // the client will recieve this file later when we copy over
+            // changelog_curr's remaining files
         }
         else {
             // if item modified
             if (!n_root->del) {
                 // download file from client
+                response = reqc_upload(sock_fd, n_root->p_abs);
             }
             // else item was deleted, so delete it serverside too
             else {
-                // delete file
+                if (remove(n_root->abs)) {
+                    // TODO: error handling
+                }
             }
         }
 
@@ -133,6 +147,23 @@ void cmd_sync_h(tf_node *n_root, tree_file *changelog_curr,
 
     // recurse on children
     for (i = 0; i < n_root->children->size; i++) {
-        tf_save_h(list_get(n_root->children, i), fp);
+        cmd_sync_h(list_get(n_root->children, i), changelog_curr, l_conf_curr, l_conf_tmp);
     }
+}
+
+int cmds_h_dupe(int sock_fd, char *path_ori, uuid_t id) {
+    int response;
+    char path_dup[MSG_LEN];
+
+    // get the name of the dupe file
+    su_get_dup_path(path_ori, path_dup, id);
+
+    // server/client request commands
+    response = reqc_dupe(sock_fd, path_ori);
+    // TODO: handle response for errors
+
+    // download dupe file
+    response = reqc_upload(sock_fd, path_dup);
+
+    return response;
 }

@@ -9,7 +9,7 @@ sc_conflict_res(int sock_fd, char *path_ori, uuid_t id) {
     char path_dup[BUF_LEN];
 
     // create path_dup
-    sc_get_path_dup(path_ori, path_dup, id);
+    su_get_path_dup(path_ori, path_dup, id);
 
     // create the dup file
     sc_file_dup(path_ori, path_dup, id);
@@ -23,24 +23,16 @@ sc_conflict_res(int sock_fd, char *path_ori, uuid_t id) {
     stat_comm = req_download(sock_fd, path_dup);
 }
 
-void sc_get_dup_path(char *path_ori, char *path_dup, uuit_t id) {
-    // create path_dup with format:
-    // <path>.dup~<id>
-    strcpy(path_dup, path_ori);
-    strcat(path_dup, DUP_EXT);
-    strncat(path_dup, id, sizeof(uuid_t));
-}
-
 // duplicates a given file, giving it file path:
 // <path_ori>.dup~<id>
 void sc_file_dup(char *path_ori, char *path_dup, uuid_t id) {
-    FILE *fp_ori;
-    FILE *fp_dup;
-    char buf[BUF_LEN];
+    file *fp_ori;
+    file *fp_dup;
+    char buf[buf_len];
     unsigned int br;
 
     // check that original file exists
-    if (access(path_ori, F_OK) == -1) {
+    if (access(path_ori, f_ok) == -1) {
         return;
     }
     
@@ -50,11 +42,11 @@ void sc_file_dup(char *path_ori, char *path_dup, uuid_t id) {
 
     while (1) {
         // read contents into buf
-        br = fread(buf, sizeof(char), BUF_LEN, fp_ori);
+        br = fread(buf, sizeof(char), buf_len, fp_ori);
         // write contents to dupe file
         fwrite(buf, sizeof(char), br, fp_dup);
         
-        // If EOF has been reached, we are done
+        // if eof has been reached, we are done
         if (feof(fp)) {
             break;
         }
