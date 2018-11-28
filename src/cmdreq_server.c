@@ -39,12 +39,29 @@ int reqc_upload(int sock_fd, char *path) {
 }
 
 int reqc_delete(int sock_fd, char *path) {
+    int stat_comm;
+    int len_path;
+
     // prompt client with request
-    stat_comm = prompt_req(sock_fd, CMD_C_UPLOAD);
+    stat_comm = prompt_req(sock_fd, CMD_C_DELETE);
 
     // send the client the file to delete
     len_path = strlen(path); 
     stat_comm = send_msg(sock_fd, path, len_path, len_path);
+
+    return resp_await(sock_fd);
+}
+
+// req obtain client id
+int reqc_id(int sock_fd, uuid_t *id) {
+    int stat_comm;
+
+    // prompt client with request
+    stat_comm = promp_req(sock_fd, CMD_C_SYNC_INFO);
+
+    // obtain id from client
+    status_comm = recv_msg(sock_fd, id,
+            sizeof(uuid_t), sizeof(uuid_t));
 
     return resp_await(sock_fd);
 }

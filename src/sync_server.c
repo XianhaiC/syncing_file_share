@@ -22,8 +22,7 @@ void ss_sync(int sock_fd) {
     char *tmp;
 
     // receive the client's info
-    status_comm = recv_msg(sock_fd, info_client.id, 
-            sizeof(info_client.id), sizeof(info_client.id));
+    response = reqc_id(sock_fd, &(info_client.id));
 
     // create the file paths to be used
     memset(path_tmp, 0, MSG_LEN);
@@ -87,7 +86,7 @@ void ss_sync(int sock_fd) {
             // then the server will take it from there
             // TODO: Create reqs reqc cmds cmdc functions to handle dedicated
             
-            response = cmd_h_dupe(sock_fd, path_conf, info_client.id);
+            response = ss_h_dupe(sock_fd, path_conf, info_client.id);
         }
     }
 }
@@ -151,7 +150,7 @@ void ss_h_sync(int sock_fd, tf_node *n_root, tree_file *changelog_curr,
     }
 }
 
-int cmds_h_dupe(int sock_fd, char *path_ori, uuid_t id) {
+int ss_h_dupe(int sock_fd, char *path_ori, uuid_t id) {
     int response;
     char path_dup[MSG_LEN];
 

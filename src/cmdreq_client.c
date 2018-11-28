@@ -75,5 +75,13 @@ void cmdc_delete(int sock_fd) {
     resp_send(sock_fd, RESP_SUCCESS);
     return;
 }
-// cmd download file from client
 
+void cmdc_sync_info(int sock_fd, uuid_t *id) {
+    int stat_comm;
+
+    // send caller our id
+    send_msg(sock_fd, id, sizeof(uuit_t), sizeof(uuid_t));
+
+    resp_send(sock_fd, RESP_SUCCESS);
+    return;
+}
