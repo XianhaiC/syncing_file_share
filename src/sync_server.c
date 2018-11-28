@@ -38,7 +38,7 @@ void ss_sync(int sock_fd) {
     strcat(path_tmp, CHANGELOG_TMP);
     
     // receive the updated changelog file from the client
-    status_comm = recv_file(sock_fd, path_tmp);
+    response = reqc_changelog(sock_fd, path_tmp);
 
     // read in the server's changelog
     changelog_cur = tf_load(path_tmp);
@@ -53,7 +53,7 @@ void ss_sync(int sock_fd) {
     changelog_curr = tf_load(path_curr);
     changelog_tmp = tf_load(path_tmp);
 
-    ss_h_sync(changelog_tmp->root, changelog_curr, 
+    ss_h_(sock_fd, changelog_tmp->root, changelog_curr, 
             l_conf_curr, l_conf_tmp);
 
     // loop through all conflicted nodes and sync them
@@ -63,16 +63,17 @@ void ss_sync(int sock_fd) {
         // if the conflicted file is not a dup file, solve the conflict as per
         // usual
         tmp = strstr(list_get(l_conf_curr, i), DUP_EXT);
-        if (tmp != NULL) {
+        if (tmp == NULL) {
             // get the client to create its copy of the conflicted file
-            sc_conflict_res(sock_fd, path_conf, info_client.id);
+            response = ss_h_dupe(sock_fd, path_conf, info_client.id);
 
             // download the copy file over
         }
         // otherwise, since we don't wish to create dup files of dup files,
         // the server has priority and will overwrite changes client made to
         // local dup file
-        else {
+        // thus we don't need to do anything more here
+        
             // TODO: revamp communication methods
             // they should be server centered
             // this means that if a client ever needs anything, it must send the
@@ -86,13 +87,16 @@ void ss_sync(int sock_fd) {
             // then the server will take it from there
             // TODO: Create reqs reqc cmds cmdc functions to handle dedicated
             
-            response = ss_h_dupe(sock_fd, path_conf, info_client.id);
-        }
     }
+
+    // now traverse through all of changelog_curr's items (modified files tracked by
+    // server) and sync them with clients'
+    ss_h_sync_serverside(sock_fd, changelog_tmp->root);
 }
 
-// recursive helper method to traverse changelog file tree
-void ss_h_sync(int sock_fd, tf_node *n_root, tree_file *changelog_curr,
+// copies over client's files given clientside changelog
+// keeps track of conflicting files 
+void ss_h_sync_clientside(int sock_fd, tf_node *n_root, tree_file *changelog_curr,
         list *l_conf_curr, list *l_conf_tmp, uuid_t client_id) {
     int response;
     tf_node *n_query_curr;
@@ -150,6 +154,32 @@ void ss_h_sync(int sock_fd, tf_node *n_root, tree_file *changelog_curr,
     }
 }
 
+// update's client's files given serverside changelog
+// does not care about conflicts
+void ss_h_sync_serverside(int sock_fd, tf_node *n_root) {
+    int response;
+
+    // we only about root nodes, or files
+    if (n_root->children->size == 0) {
+        // delete client's respective file
+        if (n_root->del) {
+            response = reqc_delete(sock_fd, n_root->p_abs);
+            // TODO: handle response
+        }
+        // update client's respective file
+        else {
+            response = reqc_download(sock_fd, n_root->p_abs);
+        }
+
+        return;
+    }
+
+    // recurse on children
+    for (i = 0; i < n_root->children->size; i++) {
+        cmd_sync_h(list_get(n_root->children, i), changelog_curr, l_conf_curr, l_conf_tmp);
+    }
+}
+
 int ss_h_dupe(int sock_fd, char *path_ori, uuid_t id) {
     int response;
     char path_dup[MSG_LEN];
@@ -166,3 +196,4 @@ int ss_h_dupe(int sock_fd, char *path_ori, uuid_t id) {
 
     return response;
 }
+

@@ -41,7 +41,13 @@
 #define CMD_S_SYNC 3
 
 // client commands
-#define CMD_C_CONFRES 0
+#define CMD_C_DOWNLOAD 0
+#define CMD_C_UPLOAD 1
+#define CMD_C_DELETE 2
+#define CMD_C_DUPE 3
+#define CMD_C_SYNC_INFO 4
+#define CMD_C_CHANGELOG 5
+
 
 // cmdreq util
 #define RESP_SUCCESS 1

@@ -48,13 +48,29 @@ void cmdc_dupe(int sock_fd, uuid_t id) {
 
 // cmd upload file to server
 void cmdc_upload(int sock_fd) {
-    char path[MSG_LEN];
     int stat_comm;
+    char path[MSG_LEN];
 
     // obtain the file to upload's path
     stat_comm = recv_msg(sock_fd, path, MSG_LEN);
     
+    // send the file
     stat_comm = send_file(sock_fd, path);
+
+    resp_send(sock_fd, RESP_SUCCESS);
+    return;
+}
+
+// cmd download file from server
+void cmdc_download(int sock_fd) {
+    int stat_comm;
+    char path[MSG_LEN];
+
+    // obtain the file to download's path
+    stat_comm = recv_msg(sock_fd, path, MSG_LEN);
+
+    // recv the file
+    stat_comm = recv_file(sock_fd, path);
 
     resp_send(sock_fd, RESP_SUCCESS);
     return;
@@ -76,11 +92,23 @@ void cmdc_delete(int sock_fd) {
     return;
 }
 
-void cmdc_sync_info(int sock_fd, uuid_t *id) {
+void cmdc_sync_info(int sock_fd, sync_info *info) {
     int stat_comm;
 
     // send caller our id
-    send_msg(sock_fd, id, sizeof(uuit_t), sizeof(uuid_t));
+    send_msg(sock_fd, info, sizeof(sync_info), sizeof(sync_info));
+
+    resp_send(sock_fd, RESP_SUCCESS);
+    return;
+}
+
+void cmdc_changelog(int sock_fd) {
+    int stat_comm;
+    char path[BUF_SIZE];
+
+    stat_comm = send_file(sock_fd, FP_CHANGELOG_LOCAL);
+
+    // TODO: error handling
 
     resp_send(sock_fd, RESP_SUCCESS);
     return;

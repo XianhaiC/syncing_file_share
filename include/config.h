@@ -7,6 +7,7 @@
 // .sync macros
 #define DP_CHANGELOG SYNC_ROOT "/.sync/changelogs"
 #define FP_SYNC_INFO SYNC_ROOT "/.sync/sync_info"
+#define FP_CHANGELOG_LOCAL DP_CHANGELOG "/local"
 #define SYNC_IP "127.0.0.1"
 #define TEST_FILE "/test_file2.txt"
 #define CHANGELOG_TMP "_tmp"
