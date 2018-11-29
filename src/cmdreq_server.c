@@ -2,8 +2,19 @@
  * cmd and req functions for the server
  */
 
-// cmd upload file to client
-// cmd download file from client
+// cmd create id for client
+void cmds_create_id(int sock_fd) {
+    int stat_comm;
+    uuid_t id_client;
+    uuid_generate(id_client);
+
+    stat_comm = send_msg(sock_fd, id_client, sizeof(uuid_t), sizeof(uuid_t)); 
+
+    resp_send(sock_fd, RESP_SUCCESS);
+    return;
+}
+
+// cmd commence sync process for client
 
 // req ask client to create dupe of file
 int reqc_dupe(int sock_fd, char *path_ori) {

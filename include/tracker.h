@@ -14,12 +14,8 @@
 // forward declaration for externally defined structs
 typedef struct _list list;
 
-typedef struct _sync_info sync_info;
 typedef struct _sync_file_update sync_file_update;
 
-struct _sync_info {
-    uuid_t id;
-};
 
 // hash contains the SHA1 hash of the file path
 // del if 1 means the file is deleted, othewise it was modified

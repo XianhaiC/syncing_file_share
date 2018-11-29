@@ -6,8 +6,12 @@
 int main() {
     int server_fd;
     struct sockaddr_in addr_client;
+
     char msg[MSG_LEN];
     char path[MSG_LEN];
+
+    sync_info info_client;
+
     //char *test_file = "62692957_p0.png";
     char *test_file = "test_file2.txt";
     char *name = getenv("USER");
@@ -16,42 +20,16 @@ int main() {
         exit(EXIT_FAILURE);
     }
 
-    // notify server of connection
-    /*snprintf(msg, MSG_LEN, "CLIENT %s: connection established.", name);
-    if (send_msg(server_fd, msg, strlen(msg)) == -1) {
-        printf("Unable to respond to server. Exiting program.\n");
-    }*/
-
-    printf("Client created\nName: %s\n\n", name);
+    // once connected, read in client id
+    sync_info_read(&info_client, FP_SYNC_INFO);
     
-    printf("Listening for further commands\n\n");
+    // TODO: if failed to read in, then request server to create new one
 
-    // loop to constantly check for commands
-    while(1) {
-        memset(path, 0, MSG_LEN);
-        memset(msg, 0, MSG_LEN);
+    // start listening for commands from server
 
-        strcpy(path, SYNC_ROOT);
-        strcat(path, TEST_FILE);
-
-        strcpy(msg, RETRIEVE);
-        strcat(msg, ":");
-        strcat(msg, path);
-
-        printf("Sending request: %s\n\n", msg);
-        
-        send_msg(server_fd, msg, MSG_LEN, strlen(msg));
-
-        memset(path, 0, MSG_LEN);
-
-        strcpy(path, SYNC_ROOT_REMOTE);
-        strcat(path, TEST_FILE);
-        recv_file(server_fd, path);
-
-        printf("Finished recieving file\n\n");
-
-        break;
-    }
+    // TODO: figure out how to now have one thread listening for server requests
+    // and one thread for sending sync requests from this client
+    parser_c(server_fd, &client_info);
 
     close(server_fd);
     return 0;

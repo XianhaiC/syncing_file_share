@@ -112,3 +112,17 @@ void cmdc_changelog(int sock_fd) {
     resp_send(sock_fd, RESP_SUCCESS);
     return;
 }
+
+// req retrieve new id from server
+// note id is a char array
+int reqs_create_id(int sock_fd, uuid_t id) {
+    int stat_comm;
+
+    // send the request
+    stat_comm = send_cmd(sock_fd, CMD_S_CREATE_ID);
+    
+    // recieve the id
+    stat_comm = recv_msg(sock_fd, id, sizeof(uuid_t));
+
+    return resp_await(sock_fd);
+}

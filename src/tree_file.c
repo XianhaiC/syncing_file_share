@@ -177,6 +177,7 @@ tree_file *tf_load(char *path) {
     return tf;
 }
 
+// TODO: mem management
 void tf_delete(tree_file *tf) {}
 
 // helper functions
