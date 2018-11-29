@@ -2,6 +2,52 @@
  * cmd and req functions for the client
  */
 
+// cmd download file from server
+void cmdc_download(int sock_fd) {
+    int stat_comm;
+    char path[MSG_LEN];
+
+    // obtain the file to download's path
+    stat_comm = recv_msg(sock_fd, path, MSG_LEN);
+
+    // recv the file
+    stat_comm = recv_file(sock_fd, path);
+
+    resp_send(sock_fd, RESP_SUCCESS);
+    return;
+}
+
+// cmd upload file to server
+void cmdc_upload(int sock_fd) {
+    int stat_comm;
+    char path[MSG_LEN];
+
+    // obtain the file to upload's path
+    stat_comm = recv_msg(sock_fd, path, MSG_LEN);
+    
+    // send the file
+    stat_comm = send_file(sock_fd, path);
+
+    resp_send(sock_fd, RESP_SUCCESS);
+    return;
+}
+
+// cmd delete file requested by server
+void cmdc_delete(int sock_fd) {
+    char path[MSG_LEN];
+    int stat_comm;
+    
+    // obtain the file to delete's path
+    stat_comm = recv_msg(sock_fd, path, MSG_LEN);
+
+    if (remove(path)) {
+        // TODO: error handling
+    }
+
+    resp_send(sock_fd, RESP_SUCCESS);
+    return;
+}
+
 // cmd duplicates a given file, giving it file path:
 // <path_ori>.dup~<id>
 void cmdc_dupe(int sock_fd, uuid_t id) {
@@ -45,53 +91,6 @@ void cmdc_dupe(int sock_fd, uuid_t id) {
     resp_send(sock_fd, RESP_SUCCESS);
     return;
 }
-
-// cmd upload file to server
-void cmdc_upload(int sock_fd) {
-    int stat_comm;
-    char path[MSG_LEN];
-
-    // obtain the file to upload's path
-    stat_comm = recv_msg(sock_fd, path, MSG_LEN);
-    
-    // send the file
-    stat_comm = send_file(sock_fd, path);
-
-    resp_send(sock_fd, RESP_SUCCESS);
-    return;
-}
-
-// cmd download file from server
-void cmdc_download(int sock_fd) {
-    int stat_comm;
-    char path[MSG_LEN];
-
-    // obtain the file to download's path
-    stat_comm = recv_msg(sock_fd, path, MSG_LEN);
-
-    // recv the file
-    stat_comm = recv_file(sock_fd, path);
-
-    resp_send(sock_fd, RESP_SUCCESS);
-    return;
-}
-
-// cmd delete file requested by server
-void cmdc_delete(int sock_fd) {
-    char path[MSG_LEN];
-    int stat_comm;
-    
-    // obtain the file to delete's path
-    stat_comm = recv_msg(sock_fd, path, MSG_LEN);
-
-    if (remove(path)) {
-        // TODO: error handling
-    }
-
-    resp_send(sock_fd, RESP_SUCCESS);
-    return;
-}
-
 void cmdc_sync_info(int sock_fd, sync_info *info) {
     int stat_comm;
 
