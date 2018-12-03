@@ -31,6 +31,7 @@
 #define LOCALHOST "127.0.0.1"
 #define PORT_SERV 12347
 #define PORT_LOG 12346
+#define PORT_TEST 12345
 #define BACKLOG 10
 #define TIMEOUT_LOG 20.0
 
@@ -47,6 +48,7 @@
 #define CMD_C_DUPE 3
 #define CMD_C_SYNC_INFO 4
 #define CMD_C_CHANGELOG 5
+#define CMD_C_KILL 6
 
 
 // cmdreq util

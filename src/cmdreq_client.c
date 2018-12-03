@@ -3,15 +3,26 @@
  */
 
 // cmd download file from server
-void cmdc_download(int sock_fd) {
+void cmdc_download(int sock_fd, char *path_return) {
     int stat_comm;
     char path[MSG_LEN];
 
     // obtain the file to download's path
     stat_comm = recv_msg(sock_fd, path, MSG_LEN);
+    if (stat_comm > 0) {
+        path[stat_comm] = '\0';
+    }
+    else {
+        // TODO: error handle
+    }
 
     // recv the file
     stat_comm = recv_file(sock_fd, path);
+
+    // return path to caller
+    if (path_return != NULL) {
+        strcpy(path_return, path);
+    }
 
     resp_send(sock_fd, RESP_SUCCESS);
     return;
@@ -111,6 +122,14 @@ void cmdc_changelog(int sock_fd) {
 
     resp_send(sock_fd, RESP_SUCCESS);
     return;
+}
+
+void cmdc_recv_checksum(int sock_fd, char *checksum) {
+    int stat_comm;
+    
+    stat_comm = recv_msg(sock_fd, checksum, SHA_DIGEST_LENGTH);
+
+    
 }
 
 // req retrieve new id from server

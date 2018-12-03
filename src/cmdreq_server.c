@@ -2,6 +2,25 @@
  * cmd and req functions for the server
  */
 
+
+// TODO: write new req and cmd methods to handle server client comm
+// cmd calls should be executed server side, providing requested info back to
+// the client
+// req call should be executed client side, providing necessary info to the
+// server
+
+// cmd: client downloads file from server
+void cmd_download(sync_info *si_client) {
+    int stat_comm;
+    char path[BUF_LEN];
+
+    // recv requested file path from client
+    stat_comm = recv_msg(si_client->sock_fd, path, BUF_LEN, BUF_LEN);
+
+    // send the file
+    stat_comm = send_file(sock_fd, path);
+}
+
 // cmd create id for client
 void cmds_create_id(int sock_fd) {
     int stat_comm;
