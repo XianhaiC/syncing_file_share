@@ -17,20 +17,53 @@ void cmd_download(sync_info *si_client) {
     // recv requested file path from client
     stat_comm = recv_msg(si_client->sock_fd, path, BUF_LEN, BUF_LEN);
 
-    // send the file
-    stat_comm = send_file(sock_fd, path);
+    // send the file to the client
+    stat_comm = send_file(si_client->sock_fd, path);
+
+    return resp_send(si_client->sock_fd, RESP_SUCCESS);
+}
+
+// cmd: client uploads file to server
+void cmd_upload(sync_info *si_client) {
+    int stat_comm;
+    char path[BUF_LEN];
+
+    // recv uploading file path from client
+    stat_comm = recv_msg(si_client->sock_fd, path, BUF_LEN, BUF_LEN);
+
+    // recv the file from the client
+    stat_comm = recv_file(si_client->sock_fd, path);
+
+    return resp_send(si_client->sock_fd, RESP_SUCCESS);
+}
+
+void cmd_changelog(sync_info *si_client) {
+    int stat_comm;
+    char path[BUF_LEN];
+    
+    // determine the client's respective changelog path based 
+    // on their id
+    strcpy(path, DP_CHANGELOG);
+    strcat(path, "/");
+    strncat(path, si_client->id, sizeof(uuid_t));
+
+    // TODO: check if file exists first
+    // send the file to the client
+    stat_comm = send_file(si_client->sock_fd, path);
+
+    return resp_send(si_client->sock_fd, RESP_SUCCESS);
 }
 
 // cmd create id for client
-void cmds_create_id(int sock_fd) {
+void cmd_create_id(sync_info *si_client) {
     int stat_comm;
     uuid_t id_client;
     uuid_generate(id_client);
 
-    stat_comm = send_msg(sock_fd, id_client, sizeof(uuid_t), sizeof(uuid_t)); 
+    stat_comm = send_msg(si_client->sock_fd, id_client, 
+        sizeof(uuid_t), sizeof(uuid_t)); 
 
-    resp_send(sock_fd, RESP_SUCCESS);
-    return;
+    return resp_send(sock_fd, RESP_SUCCESS);
 }
 
 // cmd commence sync process for client
@@ -51,7 +84,7 @@ int reqc_dupe(int sock_fd, char *path_ori) {
 }
 
 // req client to upload file to server
-int reqc_upload(int sock_fd, char *path) {
+int req_upload(int sock_fd, char *path) {
     int stat_comm;
     int len_path;
 
@@ -68,14 +101,14 @@ int reqc_upload(int sock_fd, char *path) {
     return resp_await(sock_fd);
 }
 
-int reqc_download(int sock_fd, char *path) {
+int req_download(int sock_fd, char *path) {
     int stat_comm;
     int len_path;
 
-    // prompt client with request
+    // prompt server with request
     stat_comm = prompt_req(sock_fd, CMD_C_DOWNLOAD);
 
-    // send the client the file to upload
+    // send the server the file to upload
     len_path = strlen(path); 
     stat_comm = send_msg(sock_fd, path, len_path, len_path);
 
@@ -85,14 +118,14 @@ int reqc_download(int sock_fd, char *path) {
     return resp_await(sock_fd);
 }
 
-int reqc_delete(int sock_fd, char *path) {
+int req_delete(int sock_fd, char *path) {
     int stat_comm;
     int len_path;
 
-    // prompt client with request
+    // prompt server with request
     stat_comm = prompt_req(sock_fd, CMD_C_DELETE);
 
-    // send the client the file to delete
+    // send the server the file to delete
     len_path = strlen(path); 
     stat_comm = send_msg(sock_fd, path, len_path, len_path);
 
@@ -100,10 +133,10 @@ int reqc_delete(int sock_fd, char *path) {
 }
 
 // req obtain client id
-int reqc_sync_info(int sock_fd, sync_info *info) {
+int req_sync_info(int sock_fd, sync_info *info) {
     int stat_comm;
 
-    // prompt client with request
+    // prompt server with request
     stat_comm = prompt_req(sock_fd, CMD_C_SYNC_INFO);
 
     // obtain id from client
@@ -114,10 +147,10 @@ int reqc_sync_info(int sock_fd, sync_info *info) {
 }
 
 // req obtain client's changelog
-int reqc_changelog(int sock_fd, char *path) {
+int req_changelog(int sock_fd, char *path) {
     int stat_comm;
 
-    // prompt client with request
+    // prompt server with request
     stat_comm = prompt_req(sock_fd, CMD_C_CHANGELOG);
 
     // receive the updated changelog file from the client
