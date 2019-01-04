@@ -50,6 +50,9 @@ int main() {
     fd_set readfds_temp; // modifiable set of fd's
     int fdmax = 0;
 
+    // hold client sync_info's
+
+
     if ((server_fd = initcon_local(LOCALHOST, PORT_SERV, &addr_server)) == -1) {
         exit(EXIT_FAILURE);
     }

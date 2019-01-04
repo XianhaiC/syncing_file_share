@@ -9,6 +9,39 @@
 // req call should be executed client side, providing necessary info to the
 // server
 
+
+void cmd_login(sync_info *si_client) {
+    int stat_comm;
+    int32_t action;
+
+    // determine what the client wishes to do, storing info in action
+    // 0: login an existing client
+    // 1: create a new id for the client
+    stat_comm = recv_int32(si_client->sock_fd, &action);
+
+    switch (action) {
+        case 0:
+            stat_comm = recv_msg(si_client->sock_fd, si_client->id, sizeof(uuid_t));
+            // TODO: error handling
+        case 1:
+            uuid_generate(si_client->id);
+
+            // send id to client
+            stat_comm = send_msg(si_client->sock_fd, si_client->id, 
+                sizeof(uuid_t), sizeof(uuid_t));
+            // TODO: error handling
+        default:
+            uuid_generate(si_client->id);
+
+            // send id to client
+            stat_comm = send_msg(si_client->sock_fd, si_client->id, 
+                sizeof(uuid_t), sizeof(uuid_t));
+            // TODO: error handling
+    }
+
+    return resp_send(si_client->sock_fd, RESP_SUCCESS);
+}
+
 // cmd: client downloads file from server
 void cmd_download(sync_info *si_client) {
     int stat_comm;
@@ -37,6 +70,18 @@ void cmd_upload(sync_info *si_client) {
     return resp_send(si_client->sock_fd, RESP_SUCCESS);
 }
 
+void cmd_delete(sync_info *si_client) {
+    int stat_comm;
+    char path[BUF_LEN];
+
+    stat_comm = recv_msg(si_client->sock_fd, path, BUF_LEN, BUF_LEN);
+
+    remove(path);
+    // TODO: error handling
+
+    return resp_send(si_client->sock_fd, RESP_SUCCESS);
+}
+
 void cmd_changelog(sync_info *si_client) {
     int stat_comm;
     char path[BUF_LEN];
@@ -54,17 +99,29 @@ void cmd_changelog(sync_info *si_client) {
     return resp_send(si_client->sock_fd, RESP_SUCCESS);
 }
 
+void cmd_sync_info(sync_info *si_client) {
+    int stat_comm;
+
+    // send the sync info to the client
+    stat_comm = send_msg(sock_fd, si_client,
+            sizeof(sync_info), sizeof(sync_info));
+
+    return resp_send(si_client->sock_fd, RESP_SUCCESS);
+}
+
 // cmd create id for client
 void cmd_create_id(sync_info *si_client) {
     int stat_comm;
     uuid_t id_client;
     uuid_generate(id_client);
 
+    // send id to client
     stat_comm = send_msg(si_client->sock_fd, id_client, 
         sizeof(uuid_t), sizeof(uuid_t)); 
 
     return resp_send(sock_fd, RESP_SUCCESS);
 }
+
 
 // cmd commence sync process for client
 
@@ -81,6 +138,24 @@ int reqc_dupe(int sock_fd, char *path_ori) {
     stat_comm = send_msg(sock_fd, path_ori, len_path_ori, len_path_ori);
 
     return resp_await(sock_fd);
+}
+
+int req_login(int sock_fd, sync_info *si_client, int action) {
+    int stat_comm;
+
+    stat_comm = send_int32_t(sock_fd, &action);
+
+    switch (action) {
+        case 0:
+            stat_comm = send_msg(sock_fd, si_client->id, 
+                sizeof(uuid_t), sizeof(uuid_t));
+        case 1:
+            stat_comm = recv_msg(sock_fd, si_client->id,
+                sizeof(uuid_t));
+        default:
+            stat_comm = recv_msg(sock_fd, si_client->id,
+                sizeof(uuid_t));
+    }
 }
 
 // req client to upload file to server
@@ -141,7 +216,7 @@ int req_sync_info(int sock_fd, sync_info *info) {
 
     // obtain id from client
     status_comm = recv_msg(sock_fd, info,
-            sizeof(sync_info), sizeof(sync_info));
+            sizeof(sync_info));
 
     return resp_await(sock_fd);
 }

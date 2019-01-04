@@ -1,31 +1,32 @@
-#include "ht_file.h"
+#include "hash_map.h"
 
 // TODO: ERROR HANDLING WITH MEMORY
+// TODO: generalize so it can take anything as a key and store pointers
 
 // initializes hashtable
-ht_file *ht_file_init(int cap, float thresh) {
+hash_map *hash_map_init(int cap, float thresh) {
     int i;
-    ht_file *ht = (ht_file *) malloc(sizeof(ht_file));
-    ht->cap = cap;
-    ht->size = 0;
-    ht->thresh = thresh;
-    ht->list = (ht_node **) calloc(cap, sizeof(ht_node *));
+    hash_map *hm = (hash_map *) malloc(sizeof(hash_map));
+    hm->cap = cap;
+    hm->size = 0;
+    hm->thresh = thresh;
+    hm->list = (hm_node **) calloc(cap, sizeof(hm_node *));
 
-    return ht;
+    return hm;
 }
 
 // free hashtable
-void ht_file_free(ht_file *ht) {
+void hash_map_free(hash_map *hm) {
     // free the nodes in the list
-    ht_file_free_list(ht->list, ht->cap);
+    hash_map_free_list(hm->list, hm->cap);
 
-    free(ht);
+    free(hm);
 }
 
-void ht_file_free_list(ht_node **list, unsigned int cap) {
+void hash_map_free_list(hm_node **list, unsigned int cap) {
     int i;
-    ht_node *node_tmp;
-    ht_node *node_curr;
+    hm_node *node_tmp;
+    hm_node *node_curr;
 
     // free the nodes in the list
     for (i = 0; i < cap; i++) {
@@ -43,65 +44,51 @@ void ht_file_free_list(ht_node **list, unsigned int cap) {
  
 // inserts element into hashtable
 // returns 0 upon replacement and 1 upon insertion
-int ht_file_insert(ht_file *ht, uuid_t key, unsigned int val) {
+int hash_map_insert(hash_map *hm, void *key, void *val) {
     int i;
-    unsigned int hash = hash_uuid(key) % ht->cap;
-    ht_node *node_new;
-    ht_node *node_head = ht->list[hash];
-    ht_node *node_tmp = node_head;
+    unsigned int hash;
+    hm_node *node_new;
  
-    // check if node for key already exists
-    // if so, replace the old val
-    while (node_tmp) {
-        // if the key already has an entry replace val
-        if (!strncmp(key, node_tmp->key, LEN_UUID_T)) {
-            node_tmp->val = val;
-            return 1;
-        }
-        node_tmp = node_tmp->next;
-    }
+    // place the node at the head as we don't care about dupes here
 
     // if the hashtable has surpassed expansion threshold then relocate elements
     // to a larger one
-    if (ht->size >= (unsigned int) (ht->cap * ht->thresh)) {
-        ht_file_expand(ht); 
+    if (hm->size >= (unsigned int) (hm->cap * hm->thresh)) {
+        hash_map_expand(hm); 
  
         // calculate the new hash in the larger hashtable
-        hash = hash_uuid(key) % ht->cap;
-        node_head = ht->list[hash];
     }
+
+    hash = (*hm->hash)(key) % hm->cap;
 
     // initialize the new node with contents
-    node_new = (ht_node *) malloc(sizeof(ht_node));
+    node_new = (hm_node *) malloc(sizeof(hm_node));
 
-    // cannot use strncpy or snprintf since uuid_t can contain null vals
-    for (i = 0; i < LEN_UUID_T; i++) {
-        (node_new->key)[i] = key[i];
-    }
+    node_new->key = key;
     node_new->val = val;
 
     // set it to be the new head
-    node_new->next = node_head;
-    ht->list[hash] = node_new;
+    node_new->next = hm->list[hash]
+    hm->list[hash] = node_new;
     
-    (ht->size)++;
+    (hm->size)++;
 
     return 0;
 }
 
 // looks up an item in the hashtable
 // returns a pointer to the val, null if not found
-void *ht_file_lookup(ht_file *ht, uuid_t key) {
-    unsigned int hash = hash_uuid(key) % ht->cap;
-    ht_node *node_curr = ht->list[hash];
+void *hash_map_lookup(hash_map *hm, uuid_t key) {
+    unsigned int hash = (*hm->hash)(key) % hm->cap;
+    hm_node *n_curr = hm->list[hash];
 
     // search through the linked list for key
-    while (node_curr) {
-        // check if the key is exists within ht
-        if (!strncmp(key, node_curr->key, LEN_UUID_T)) {
-            return &(node_curr->val);
+    while (n_curr) {
+        // check if the key exists within hm
+        if ((*hm->data_comp)(key, n_curr->key)) {
+            return &(n_curr->val);
         }
-        node_curr = node_curr->next;
+        n_curr = n_curr->next;
     }
 
     return NULL;
@@ -109,22 +96,26 @@ void *ht_file_lookup(ht_file *ht, uuid_t key) {
 
 // removes a key val from the hashtable
 // returns 1 upon removal, 0 otherwise
-int ht_file_remove(ht_file *ht, uuid_t key) {
-    unsigned int hash = hash_uuid(key) % ht->cap;
-    ht_node *node_curr = ht->list[hash];
+int hash_map_remove(hash_map *hm, uuid_t key) {
+    unsigned int hash = (*hm->hash)(key) % hm->cap;
+    hm_node *n_curr = hm->list[hash];
     // node pointer pointer that tracks the previous node's next
-    ht_node **nodep_prev = &(ht->list[hash]);
+    hm_node **nodep_prev = &(hm->list[hash]);
 
     // search through the linked list for key
-    while (node_curr) {
-        if (!strncmp(key, node_curr->key, LEN_UUID_T)) {
+    while (n_curr) {
+        if ((*hm->data_comp)(key, n_curr->key)) {
             // link previous node with next
             *nodep_prev = node_curr->next;
 
             // free the node
             free(node_curr);
-            (ht->size)--;
-            return 1;
+            (hm->size)--;
+            
+            // set to next node
+            n_curr = *nodep_prev;
+
+            continue;
         }
         // update node pointer pointer
         nodep_prev = &node_curr->next;
@@ -136,16 +127,16 @@ int ht_file_remove(ht_file *ht, uuid_t key) {
 
 // creates a new hashtable of double size and relocates elements in the old one
 // returns the capacity of the new hashtable
-int ht_file_expand(ht_file *ht) {
+int hash_map_expand(hash_map *hm) {
     int i;
-    ht_node *node_curr;
-    ht_node ** list_old = ht->list;
-    unsigned int cap_old = ht->cap; 
+    hm_node *node_curr;
+    hm_node ** list_old = hm->list;
+    unsigned int cap_old = hm->cap; 
 
     // reset the hashtable's contents 
-    ht->cap *= 2;
-    ht->size = 0; 
-    ht->list = (ht_node **) calloc(ht->cap, sizeof(ht_node *));
+    hm->cap *= 2;
+    hm->size = 0; 
+    hm->list = (hm_node **) calloc(hm->cap, sizeof(hm_node *));
     
     // loop through each list index and relocate the items in each linked list
     for (i = 0; i < cap_old; i++) {
@@ -153,15 +144,15 @@ int ht_file_expand(ht_file *ht) {
         
         // go through the linked list
         while (node_curr) {
-            ht_file_insert(ht, node_curr->key, node_curr->val);
+            hash_map_insert(hm, node_curr->key, node_curr->val);
             node_curr = node_curr->next;
         }
     }
 
     // deallocate old list
-    ht_file_free_list(list_old, cap_old);
+    hash_map_free_list(list_old, cap_old);
 
-    return ht->cap;
+    return hm->cap;
 }
 
 // string hash function found here:

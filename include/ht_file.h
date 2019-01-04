@@ -8,22 +8,28 @@
 
 #include "macros.h"
 
-typedef struct _ht_node ht_node;
-typedef struct _ht_file ht_file;
+// TODO: make list and hash_map's struct vars consitent!
+
+typedef struct _hash_map_n hash_map_n;
+typedef struct _hash_map hash_map;
 
 // key: uuit_t
 // val: unsigned int
-struct _ht_node {
-    uuid_t key;
-    unsigned int val;
-    ht_node *next;
+struct _hash_map_n {
+    void *key;
+    void *val;
+    hash_map_n *next;
 };
 
-struct _ht_file {
-    unsigned int cap;
+struct _hash_map {
     unsigned int size;
+    unsigned int cap;
     float thresh;
     ht_node **list;
+
+    unsigned int (*hash)(void *);
+    void (*data_free)(void *);
+    int (*data_comp)(void *, void *);
 };
 
 ht_file *ht_file_init(int cap, float thresh);
