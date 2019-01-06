@@ -34,6 +34,7 @@ int main() {
     // command loop
     // do stuff here
 
+    sync_synchronize(
 
     close(server_fd);
     return 0;

@@ -1,4 +1,3 @@
-
 #include "sync_client.h"
 
 void sync_synchronize(sync_info *si_client, int sock_fd) {
@@ -20,7 +19,7 @@ void sync_synchronize(sync_info *si_client, int sock_fd) {
 
     // req server for client's changelog
     // path_new now contains the path to the new changelog
-    resp = cmd_get_changelog(si_client, path_new);
+    resp = req_changelog(sock_fd, path_new);
     
     // read in the old changelog
     ch_old = tf_load(path_old);
@@ -67,10 +66,10 @@ void sync_changelogs(sync_info *si_client, int sock_fd,
     }
 
     // traverse through new changelog, downloading from server as needed
-    sync_new_r(si_client, sock_fd, ch_new->root);
+    sync_new_r(sock_fd, ch_new->root);
 }
 
-void sync_old_r(sync_info si_client, int sock_fd, 
+void sync_old_r(sync_info *si_client, int sock_fd, 
         tf_node *n_root, tree_file *ch_new, list *l_conf) {
     int resp;
     tf_node *n_query_curr;

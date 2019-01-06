@@ -2,6 +2,7 @@
 #include "config.h"
 #include "utils.h"
 #include "comm.h"
+#include "cmd.h"
 
 /*
 struct command {

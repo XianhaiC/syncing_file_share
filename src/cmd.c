@@ -1,13 +1,5 @@
 #include "server_handlers.h"
 
-// list of all callable server commands
-void (*(g_commands[])(sync_info *)) = {
-    &cmd_login,
-    &cmd_receive,
-    &cmd_retrieve,
-    &cmd_createid,
-    &cmd_sync
-}
 
 // parse and execute command
 // client commands follow the following format:
@@ -15,8 +7,8 @@ void (*(g_commands[])(sync_info *)) = {
 //
 // The following commands are:
 // retr_file:file_path
-int parsex(int req, sync_info *si_client) {
-    *(g_commands[req])(si_client);
+void parsex(int req, sync_info *si_client) {
+    *(g_cmds[req])(si_client);
 }
 
 void cmd_login(sync_info *si_client) {
@@ -118,22 +110,6 @@ void cmd_sync_info(sync_info *si_client) {
     return resp_send(si_client->sock_fd, RESP_SUCCESS);
 }
 
-// cmd create id for client
-void cmd_create_id(sync_info *si_client) {
-    int stat_comm;
-    uuid_t id_client;
-    uuid_generate(id_client);
-
-    // send id to client
-    stat_comm = send_msg(si_client->sock_fd, id_client, 
-        sizeof(uuid_t), sizeof(uuid_t)); 
-
-    return resp_send(sock_fd, RESP_SUCCESS);
-}
-
-
-// cmd commence sync process for client
-
 int req_login(int sock_fd, sync_info *si_client, int action) {
     int stat_comm;
 
@@ -154,6 +130,23 @@ int req_login(int sock_fd, sync_info *si_client, int action) {
     }
 }
 
+int req_download(int sock_fd, char *path) {
+    int stat_comm;
+    int len_path;
+
+    // prompt server with request
+    stat_comm = cmd_prompt(sock_fd, CMD_DOWNLOAD);
+
+    // send the server the file to upload
+    len_path = strlen(path); 
+    stat_comm = send_msg(sock_fd, path, len_path, len_path);
+
+    // send the file
+    stat_comm = send_file(sock_fd, path);
+    
+    return resp_await(sock_fd);
+}
+
 // req client to upload file to server
 int req_upload(int sock_fd, char *path) {
     int stat_comm;
@@ -172,23 +165,6 @@ int req_upload(int sock_fd, char *path) {
     return resp_await(sock_fd);
 }
 
-int req_download(int sock_fd, char *path) {
-    int stat_comm;
-    int len_path;
-
-    // prompt server with request
-    stat_comm = cmd_prompt(sock_fd, CMD_DOWNLOAD);
-
-    // send the server the file to upload
-    len_path = strlen(path); 
-    stat_comm = send_msg(sock_fd, path, len_path, len_path);
-
-    // send the file
-    stat_comm = send_file(sock_fd, path);
-    
-    return resp_await(sock_fd);
-}
-
 int req_delete(int sock_fd, char *path) {
     int stat_comm;
     int len_path;
@@ -199,20 +175,6 @@ int req_delete(int sock_fd, char *path) {
     // send the server the file to delete
     len_path = strlen(path); 
     stat_comm = send_msg(sock_fd, path, len_path, len_path);
-
-    return resp_await(sock_fd);
-}
-
-// req obtain client id
-int req_sync_info(int sock_fd, sync_info *info) {
-    int stat_comm;
-
-    // prompt server with request
-    stat_comm = cmd_prompt(sock_fd, CMD_SYNC_INFO);
-
-    // obtain id from client
-    status_comm = recv_msg(sock_fd, info,
-            sizeof(sync_info));
 
     return resp_await(sock_fd);
 }
@@ -230,14 +192,18 @@ int req_changelog(int sock_fd, char *path) {
     return resp_await(sock_fd);
 }
 
-// parse and execute command
-// client commands follow the following format:
-// command:arg1,arg2,...
-//
-// The following commands are:
-// retr_file:file_path
-int parsex(int req, int sock_fd) {
-    *(g_commands[req])(sock_fd);
+// req obtain client id
+int req_sync_info(int sock_fd, sync_info *info) {
+    int stat_comm;
+
+    // prompt server with request
+    stat_comm = cmd_prompt(sock_fd, CMD_SYNC_INFO);
+
+    // obtain id from client
+    status_comm = recv_msg(sock_fd, info,
+            sizeof(sync_info));
+
+    return resp_await(sock_fd);
 }
 
 /*
