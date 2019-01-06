@@ -51,7 +51,7 @@ int main() {
     int fdmax = 0;
 
     // hold client sync_info's
-
+    hash_map *hm_sync_info;
 
     if ((server_fd = initcon_local(LOCALHOST, PORT_SERV, &addr_server)) == -1) {
         exit(EXIT_FAILURE);
@@ -78,6 +78,8 @@ int main() {
     // set fdmax to the server socket
     fdmax = server_fd;
 
+    hm_sync_info = hash_map_init(HM_CAP_INIT, HM_THRESH, 
+        &hash_int, &data_free_sync_info, &key_comp_int);
     // main loop:
     // handles accepts from new clients and broadcasts messages provided by
     // stdin
@@ -130,7 +132,7 @@ int main() {
             // handle incoming data from client
             else {
                 // read in data
-                if (recv_int32_t(i, &cmd) <= 0) {
+                if (cmd_acknowledge(i, &cmd) <= 0) {
                     // clean up connection
                     close(i);
                     FD_CLR(i, &readfds_master);
@@ -138,8 +140,9 @@ int main() {
                 }
                 
                 printf("Recieved cmd: %s\n\n", cmd);
-                // parsex the msg
-                parsex(cmd, i);
+                // parsex the msg and provide it the corresponding
+                // client sync info
+                parsex(cmd, hash_map_lookup(hm_sync_info, (void *) i));
             }
         }
     }

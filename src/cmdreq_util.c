@@ -2,8 +2,12 @@
  * general req/cmd functions shared by both server and client
  */
 
-int prompt_req(int sock_fd, int cmd) {
-    return int stat_comm = send_int32_t(sock_fd, cmd);
+int cmd_prompt(int sock_fd, int32_t cmd) {
+    return send_int32_t(sock_fd, cmd);
+}
+
+int cmd_acknowledge(int sock_fd, int32_t *cmd) {
+    return recv_int32_t(sock_fd, cmd);
 }
 
 // use to block a req until a response from the requested node is recieved

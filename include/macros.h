@@ -15,9 +15,9 @@
 // list
 #define LIST_INIT_LEN 128
 
-// hashtable
-#define HT_CAP_INIT 1024
-#define HT_THRESH 0.75
+// hash map
+#define HM_CAP_INIT 1024
+#define HM_THRESH 0.75
 
 // tree_file
 #define TF_ROOT "/"
@@ -35,20 +35,14 @@
 #define BACKLOG 10
 #define TIMEOUT_LOG 20.0
 
-// server commands
-#define CMD_S_RETRIEVE 0
-#define CMD_S_RECEIVE 1
-#define CMD_S_CREATEID 2
-#define CMD_S_SYNC 3
-
-// client commands
-#define CMD_C_DOWNLOAD 0
-#define CMD_C_UPLOAD 1
-#define CMD_C_DELETE 2
-#define CMD_C_DUPE 3
-#define CMD_C_SYNC_INFO 4
-#define CMD_C_CHANGELOG 5
-#define CMD_C_KILL 6
+// server-client commands
+#define CMD_DOWNLOAD 0
+#define CMD_UPLOAD 1
+#define CMD_DELETE 2
+#define CMD_SYNC_INFO 3
+#define CMD_CHANGELOG 4
+#define CMD_KILL 5
+#define CMD_LOGIN 6
 
 
 // cmdreq util
