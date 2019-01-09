@@ -150,9 +150,10 @@ void data_free_string(void *str) {
     free((char *) str);
 }
 
+/*
 void data_free_sync_file_update(void *sfu) {
     free((sync_file_update *) sfu);
-}
+}*/
 
 // dummy data_free function
 void data_free_tf_node(void *tf_node) {

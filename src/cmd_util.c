@@ -1,3 +1,4 @@
+#include "cmd_util.h"
 /*
  * general req/cmd functions shared by both server and client
  */

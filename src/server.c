@@ -3,32 +3,8 @@
 #include "utils.h"
 #include "comm.h"
 #include "cmd.h"
-
-/*
-struct command {
-    char *name;
-    void (*function) (void);
-};
-
-struct command commands[] = {
-    {"request", req_file(int, char *)},
-}
-
-// get corresponding command function for command string
-int (*resolve_command(char *cmd))(int, char *) {
-    int i;
-    for (i = 0; i < sizeof(commands); i++) {
-        // found the corresponding command, so return the function
-        if (strncmp(commands[i].name, cmd) == 0) {
-            return commands[i].function;
-        }
-    }
-    
-    // cmd not found
-    return NULL;
-}
-*/
-
+#include "cmd_util.h"
+#include "hash_map.h"
 
 int main() {
     // generic vars

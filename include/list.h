@@ -5,10 +5,8 @@
 #include<stdlib.h>
 
 #include "macros.h"
-#include "tracker.h"
 
 // forward declaration for externally defined structs
-typedef struct _sync_file_update sync_file_update;
 
 typedef struct _list list;
 
@@ -31,7 +29,7 @@ void list_double_capacity(list *lp);
 void list_free(list *lp);
 
 void data_free_string(void *str);
-void data_free_sync_file_update(void *sfu);
+//void data_free_sync_file_update(void *sfu);
 void data_free_tf_node(void *tf_node);
 
 int data_comp_str(void *str1,  void *str2);

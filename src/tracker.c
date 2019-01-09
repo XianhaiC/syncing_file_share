@@ -126,7 +126,7 @@ int save_changelog(char *path, list *changelog) {
 
     return 0;
 }
-
+/*
 ht_file *load_inode_res(char *path) {
     FILE *fp;
     uuid_t id;
@@ -171,7 +171,7 @@ int save_inode_res(ht_file *ht, char *path) {
     fclose(fp);
 
     return 0;
-}
+}*/
 
 // duplicated files are created when conflict arises between the server and
 // client's instances of a shared file

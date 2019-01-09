@@ -13,10 +13,10 @@ CC = gcc
 LIBS = -lssl -lcrypto -luuid
 CFLAGS = -I$(INCDIR) $(LIBS) -g
 
-_DEPS = macros.h config.h utils.h comm.h tracker.h list.h hash_map.h tree_file.h tf_node.h cmd.h sync.h
+_DEPS = macros.h config.h utils.h comm.h list.h hash_map.h tree_file.h tf_node.h cmd.h sync.h
 DEPS = $(patsubst %, $(INCDIR)/%, $(_DEPS))
 
-_OBJ = utils.o comm.o tracker.o list.o hash_map.o tree_file.o tf_node.o cmd.o sync.o
+_OBJ = utils.o comm.o list.o hash_map.o tree_file.o tf_node.o cmd.o sync.o
 OBJ = $(patsubst %, $(OBJDIR)/%, $(_OBJ))
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.c $(DEPS)
