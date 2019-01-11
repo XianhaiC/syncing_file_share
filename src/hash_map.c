@@ -6,9 +6,7 @@
 
 // initializes hashtable
 hash_map *hash_map_init(int cap, float thresh,
-    unsigned int (*hash)(void *),
-    void (*data_free)(void *),
-    int (*key_comp)(void *, void *)) {
+    void (*data_free)(void *)) {
     int i;
     hash_map *hm = (hash_map *) malloc(sizeof(hash_map));
     hm->cap = cap;
@@ -16,9 +14,7 @@ hash_map *hash_map_init(int cap, float thresh,
     hm->thresh = thresh;
     hm->list = (hash_map_n **) calloc(cap, sizeof(hash_map_n *));
 
-    hm->hash = hash;
     hm->data_free = data_free;
-    hm->key_comp = key_comp;
 
     return hm;
 }
@@ -75,7 +71,7 @@ void hash_map_free_list(hash_map *hm, hash_map_n **list, unsigned int cap,
  
 // inserts element into hashtable
 // returns 0 upon replacement and 1 upon insertion
-int hash_map_insert(hash_map *hm, void *key, void *val) {
+int hash_map_insert(hash_map *hm, int key, void *val) {
     int i;
     unsigned int hash;
     hash_map_n *node_new;
@@ -90,7 +86,7 @@ int hash_map_insert(hash_map *hm, void *key, void *val) {
         // calculate the new hash in the larger hashtable
     }
 
-    hash = (*hm->hash)(key) % hm->cap;
+    hash = hash_int(key) % hm->cap;
 
     // initialize the new node with contents
     node_new = (hash_map_n *) malloc(sizeof(hash_map_n));
@@ -109,14 +105,15 @@ int hash_map_insert(hash_map *hm, void *key, void *val) {
 
 // looks up an item in the hashtable
 // returns a pointer to the val, null if not found
-void *hash_map_lookup(hash_map *hm, void *key) {
-    unsigned int hash = (*hm->hash)(key) % hm->cap;
+void *hash_map_lookup(hash_map *hm, int key) {
+    unsigned int hash = hash_int(key) % hm->cap;
     hash_map_n *n_curr = hm->list[hash];
 
     // search through the linked list for key
     while (n_curr) {
         // check if the key exists within hm
-        if ((*hm->data_comp)(key, n_curr->key)) {
+	// int comparison
+        if (key == n_curr->key) {
             return &(n_curr->val);
         }
         n_curr = n_curr->next;
@@ -127,15 +124,15 @@ void *hash_map_lookup(hash_map *hm, void *key) {
 
 // removes a key val from the hashtable
 // returns 1 upon removal, 0 otherwise
-int hash_map_remove(hash_map *hm, void *key) {
-    unsigned int hash = (*hm->hash)(key) % hm->cap;
+int hash_map_remove(hash_map *hm, int key) {
+    unsigned int hash = hash_int(key) % hm->cap;
     hash_map_n *n_curr = hm->list[hash];
     // node pointer pointer that tracks the previous node's next
     hash_map_n **nodep_prev = &(hm->list[hash]);
 
     // search through the linked list for key
     while (n_curr) {
-        if ((*hm->data_comp)(key, n_curr->key)) {
+        if ((key == n_curr->key)) {
             // link previous node with next
             *nodep_prev = n_curr->next;
 
@@ -205,20 +202,15 @@ unsigned int hash_uuid(void *p_key)
 
 // taken from
 // https://stackoverflow.com/questions/664014/what-integer-hash-function-are-good-that-accepts-an-integer-hash-key
-unsigned int hash_int(void *p_key) {
-    unsigned int x = (unsigned int) p_key;
-    x = ((x >> 16) ^ x) * 0x45d9f3b;
-    x = ((x >> 16) ^ x) * 0x45d9f3b;
-    x = (x >> 16) ^ x;
-    return x;
+unsigned int hash_int(int key) {
+    key = ((key >> 16) ^ key) * 0x45d9f3b;
+    key = ((key >> 16) ^ key) * 0x45d9f3b;
+    key = (key >> 16) ^ key;
+    return key;
 }
 
 void data_free_sync_info(void *data) {
     sync_info *info = (sync_info *) data;
 
     free(info);
-}
-
-int key_comp_int(void *x, void *y) {
-    return ((int) x) == ((int) y);
 }

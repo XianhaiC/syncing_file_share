@@ -29,6 +29,7 @@ int main() {
 
     // hold client sync_info's
     hash_map *hm_sync_info;
+    sync_info *new_info;
 
     if ((server_fd = initcon_local(LOCALHOST, PORT_SERV, &addr_server)) == -1) {
         exit(EXIT_FAILURE);
@@ -56,7 +57,7 @@ int main() {
     fdmax = server_fd;
 
     hm_sync_info = hash_map_init(HM_CAP_INIT, HM_THRESH, 
-        &hash_int, &data_free_sync_info, &key_comp_int);
+        &data_free_sync_info);
     // main loop:
     // handles accepts from new clients and broadcasts messages provided by
     // stdin
@@ -116,10 +117,10 @@ int main() {
                     continue;
                 }
                 
-                printf("Recieved cmd: %s\n\n", cmd);
+                printf("Recieved cmd: %d\n\n", cmd);
                 // parsex the msg and provide it the corresponding
                 // client sync info
-                parsex(cmd, hash_map_lookup(hm_sync_info, (void *) i));
+                parsex(cmd, hm_sync_info, i);
             }
         }
     }
