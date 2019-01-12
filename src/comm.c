@@ -65,7 +65,6 @@ int32_t recv_msg(int sock_fd, char *msg, int32_t msg_len) {
             printf("recv_msg: socket error");
             return bc;
         }
-        char 
         else {
             msg += bc;
             to_recv -= bc;
@@ -266,6 +265,70 @@ int32_t recv_file(int sock_fd, char *path) {
     }
 
     fclose(fp);
+    return bt;
+}
+/*
+ * sends a struct of size stru_size
+ */
+int32_t send_struct(int sock_fd, void *stru, int32_t stru_size) {
+    int32_t bc = 0; // bytes communicated
+    int32_t bt = 0; // bytes total
+
+    // send recipient bytes of msg to recv
+    send_int32_t(sock_fd, stru_size);
+
+    // loop until all bytes in buffer are sent
+    do {
+        if ((bc = send(sock_fd, stru, stru_size, 0)) == -1) {
+            perror("send");
+            return -1;
+        }
+        else {
+            stru = (void *) ((char *) stru + bc);
+            stru_size -= bc;
+        }
+    }
+    while (stru_size > 0);
+
+    return bt;
+}
+
+/*
+ * receives a struct of size stru_size 
+ */
+int32_t recv_struct(int sock_fd, void *stru, int32_t stru_size) {
+    int32_t bc; // bytes communicated
+    int32_t bt; // bytes total
+    int32_t to_recv;
+    int stat_recv_int;
+
+
+    // recv bytes to read
+    if ((stat_recv_int = recv_int32_t(sock_fd, &to_recv)) <= 0) {
+        printf("recv_msg: socket error");
+        return stat_recv_int;
+    }
+
+    if (to_recv > stru_size) {
+        // push to_recv back into the socket and return
+        printf("recv_msg: buffer not large enough for incoming msg\n\n");
+        return -1;
+    }
+
+    bt = to_recv;
+
+    do {
+        if ((bc = recv(sock_fd, stru, to_recv, 0)) <= 0) {
+            printf("recv_msg: socket error");
+            return bc;
+        }
+        else {
+            stru = (void *) ((char *) stru + bc);
+            to_recv -= bc;
+        }
+    }
+    while (to_recv > 0);
+
     return bt;
 }
 

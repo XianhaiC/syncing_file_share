@@ -4,9 +4,11 @@
 #include <uuid/uuid.h>
 
 #include "macros.h"
+#include "config.h"
 #include "sync.h"
 #include "comm.h"
 #include "hash_map.h"
+#include "cmd_util.h"
 
 void parsex(int req, hash_map *hm_sync_info, int sock_fd);
 void cmd_login(hash_map *hm_sync_info, int sock_fd);

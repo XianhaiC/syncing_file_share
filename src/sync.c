@@ -1,4 +1,4 @@
-#include "sync_client.h"
+#include "sync.h"
 
 void sync_synchronize(sync_info *si_client, int sock_fd) {
     int i;

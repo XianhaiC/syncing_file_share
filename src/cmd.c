@@ -1,4 +1,4 @@
-#include "server_handlers.h"
+#include "cmd.h"
 
 // parse and execute command
 // client commands follow the following format:
@@ -7,13 +7,13 @@
 // The following commands are:
 // retr_file:file_path
 void parsex(int req, hash_map *hm_sync_info, int sock_fd) {
-    *(g_cmds[req])(hm_sync_info, sock_fd);
+    (*g_cmds[req])(hm_sync_info, sock_fd);
 }
 
 void cmd_login(hash_map *hm_sync_info, int sock_fd) {
     int stat_comm;
     int32_t action;
-    sync_info *si_client = (sync_info *) malloc(sizeof(sync_client));
+    sync_info *si_client = (sync_info *) malloc(sizeof(sync_info));
  
     // give new sync_info client's sock_fd
     si_client->sock_fd = sock_fd;
@@ -21,7 +21,7 @@ void cmd_login(hash_map *hm_sync_info, int sock_fd) {
     // determine what the client wishes to do, storing info in action
     // 0: login an existing client
     // 1: create a new id for the client
-    stat_comm = recv_int32(sock_fd, &action);
+    stat_comm = recv_int32_t(sock_fd, &action);
 
     switch (action) {
         case 0:
@@ -50,7 +50,7 @@ void cmd_login(hash_map *hm_sync_info, int sock_fd) {
             hash_map_insert(hm_sync_info, sock_fd, (void *) si_client);
     }
 
-    return resp_send(sock_fd, RESP_SUCCESS);
+    resp_send(sock_fd, RESP_SUCCESS);
 }
 
 // cmd: client downloads file from server
@@ -60,12 +60,12 @@ void cmd_download(hash_map *hm_sync_info, int sock_fd) {
     sync_info *si_client = hash_map_lookup(hm_sync_info, sock_fd);
 
     // recv requested file path from client
-    stat_comm = recv_msg(sock_fd, path, BUF_LEN, BUF_LEN);
+    stat_comm = recv_msg(sock_fd, path, BUF_LEN);
 
     // send the file to the client
     stat_comm = send_file(sock_fd, path);
 
-    return resp_send(sock_fd, RESP_SUCCESS);
+    resp_send(sock_fd, RESP_SUCCESS);
 }
 
 // cmd: client uploads file to server
@@ -75,12 +75,12 @@ void cmd_upload(hash_map *hm_sync_info, int sock_fd) {
     sync_info *si_client = hash_map_lookup(hm_sync_info, sock_fd);
 
     // recv uploading file path from client
-    stat_comm = recv_msg(sock_fd, path, BUF_LEN, BUF_LEN);
+    stat_comm = recv_msg(sock_fd, path, BUF_LEN);
 
     // recv the file from the client
     stat_comm = recv_file(sock_fd, path);
 
-    return resp_send(sock_fd, RESP_SUCCESS);
+    resp_send(sock_fd, RESP_SUCCESS);
 }
 
 void cmd_delete(hash_map *hm_sync_info, int sock_fd) {
@@ -88,12 +88,12 @@ void cmd_delete(hash_map *hm_sync_info, int sock_fd) {
     char path[BUF_LEN];
     sync_info *si_client = hash_map_lookup(hm_sync_info, sock_fd);
 
-    stat_comm = recv_msg(sock_fd, path, BUF_LEN, BUF_LEN);
+    stat_comm = recv_msg(sock_fd, path, BUF_LEN);
 
     remove(path);
     // TODO: error handling
 
-    return resp_send(sock_fd, RESP_SUCCESS);
+    resp_send(sock_fd, RESP_SUCCESS);
 }
 
 void cmd_changelog(hash_map *hm_sync_info, int sock_fd) {
@@ -111,7 +111,7 @@ void cmd_changelog(hash_map *hm_sync_info, int sock_fd) {
     // send the file to the client
     stat_comm = send_file(sock_fd, path);
 
-    return resp_send(sock_fd, RESP_SUCCESS);
+    resp_send(sock_fd, RESP_SUCCESS);
 }
 
 void cmd_sync_info(hash_map *hm_sync_info, int sock_fd) {
@@ -119,10 +119,9 @@ void cmd_sync_info(hash_map *hm_sync_info, int sock_fd) {
     sync_info *si_client = hash_map_lookup(hm_sync_info, sock_fd);
 
     // send the sync info to the client
-    stat_comm = send_msg(sock_fd, si_client,
-            sizeof(sync_info), sizeof(sync_info));
+    stat_comm = send_struct(sock_fd, si_client, sizeof(sync_info));
 
-    return resp_send(sock_fd, RESP_SUCCESS);
+    resp_send(sock_fd, RESP_SUCCESS);
 }
 
 int req_login(int sock_fd, sync_info *si_client, int action) {
@@ -130,7 +129,7 @@ int req_login(int sock_fd, sync_info *si_client, int action) {
 
     stat_comm = cmd_prompt(sock_fd, CMD_LOGIN);
 
-    stat_comm = send_int32_t(sock_fd, &action);
+    stat_comm = send_int32_t(sock_fd, action);
 
     switch (action) {
         case 0:
@@ -215,8 +214,7 @@ int req_sync_info(int sock_fd, sync_info *info) {
     stat_comm = cmd_prompt(sock_fd, CMD_SYNC_INFO);
 
     // obtain id from client
-    status_comm = recv_msg(sock_fd, info,
-            sizeof(sync_info));
+    stat_comm = recv_struct(sock_fd, info, sizeof(sync_info));
 
     return resp_await(sock_fd);
 }

@@ -20,6 +20,8 @@ int send_int32_t(int sock_fd, int32_t num);
 int recv_int32_t(int sock_fd, int32_t *num);
 int32_t send_file(int sock_fd, char *path);
 int32_t recv_file(int sock_fd, char *path);
+int32_t send_struct(int sock_fd, void *stru, int32_t stru_size);
+int32_t recv_struct(int sock_fd, void *stru, int32_t stru_size);
 void *get_in_addr(struct sockaddr *sa);
 void fill_sockaddr(int family, char *ip, int port, struct sockaddr_in *addr);
 int initcon_local(char *ip, int port, struct sockaddr_in *addr);

@@ -22,7 +22,7 @@ hash_map *hash_map_init(int cap, float thresh,
 // free hashtable
 void hash_map_free(hash_map *hm, int free_val) {
     // free the nodes in the list
-    hash_map_free_list(hm->list, hm->cap);
+    hash_map_free_list(hm, hm->list, hm->cap, free_val);
 
     free(hm);
 }
@@ -46,7 +46,7 @@ void hash_map_free_list(hash_map *hm, hash_map_n **list, unsigned int cap,
                 n_curr = n_curr->next;
 
                 // free the data in the node as well
-                (*hm->data_free)(n_tmp->val)
+                (*hm->data_free)(n_tmp->val);
                 free(n_tmp);
             }
         }
@@ -95,7 +95,7 @@ int hash_map_insert(hash_map *hm, int key, void *val) {
     node_new->val = val;
 
     // set it to be the new head
-    node_new->next = hm->list[hash]
+    node_new->next = hm->list[hash];
     hm->list[hash] = node_new;
     
     (hm->size)++;
@@ -186,14 +186,11 @@ int hash_map_expand(hash_map *hm) {
 // string hash function found here:
 // https://stackoverflow.com/questions/7666509/hash-function-for-string
 // TODO: test
-unsigned int hash_uuid(void *p_key)
+unsigned int hash_uuid(uuid_t key)
 {
     unsigned long hash = 5381;
     int i;
 
-    // cast to char array
-    uuid_t key = (uuid_t) p_key;
-    
     for (i = 0; i < LEN_UUID_T; i++) {
         hash = ((hash << 5) + hash) + ((unsigned int) key[i]);
     }
