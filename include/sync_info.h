@@ -1,7 +1,9 @@
 #ifndef SYNC_INFO_H
 #define SYNC_INFO_H
 
-// TODO: finish this shit
+#include <stdio.h>
+#include <uuid/uuid.h>
+
 typedef struct _sync_info sync_info;
 struct _sync_info {
     uuid_t id;

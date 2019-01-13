@@ -17,7 +17,6 @@ void cmd_upload(hash_map *hm_sync_info, int sock_fd);
 void cmd_delete(hash_map *hm_sync_info, int sock_fd);
 void cmd_changelog(hash_map *hm_sync_info, int sock_fd);
 void cmd_sync_info(hash_map *hm_sync_info, int sock_fd);
-void cmd_create_id(hash_map *hm_sync_info, int sock_fd);
 int req_login(int sock_fd, sync_info *si_client, int action);
 int req_download(int sock_fd, char *path);
 int req_upload(int sock_fd, char *path);
@@ -33,7 +32,6 @@ void (*g_cmds[])(hash_map *, int) = {
     &cmd_delete,
     &cmd_changelog,
     &cmd_sync_info,
-    &cmd_create_id
 };
 
 #endif

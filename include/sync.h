@@ -1,8 +1,12 @@
 #ifndef SYNC_H
 #define SYNC_H
 
+#include "config.h"
 #include "sync_info.h"
+#include "sync_util.h"
 #include "tree_file.h"
+#include "cmd.h"
+
 void sync_synchronize(sync_info *si_client, int sock_fd);
 void sync_changelogs(sync_info *si_client, int sock_fd,
     tree_file *ch_old, tree_file *ch_new);

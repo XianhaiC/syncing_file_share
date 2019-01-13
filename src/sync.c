@@ -38,25 +38,28 @@ void sync_synchronize(sync_info *si_client, int sock_fd) {
 // keeps track of conflicting files 
 void sync_changelogs(sync_info *si_client, int sock_fd,
         tree_file *ch_old, tree_file *ch_new) {
+    int i;
     list *l_conf;
+    char *path_conf;
+    char *tmp;
 
     // init list to hold conflicted nodes
-    l_conf = list_init(LIST_INIT_LEN, &data_comp_tf_node);
+    l_conf = list_init(LIST_INIT_LEN, NULL, &data_comp_tf_node);
 
     // traverse through old changelog first, tracking conflicted nodes and
     // uploading changes to server as needed
     sync_old_r(si_client, sock_fd, ch_old->root, ch_new, l_conf);
 
     // resolve conflicts looping through all conflicted nodes and sync them
-    for (i = 0; i < l_conf_old->size; i++) {
-        path_conf = ((tf_node *) list_get(l_conf_old, i))->p_abs;
+    for (i = 0; i < l_conf->size; i++) {
+        path_conf = ((tf_node *) list_get(l_conf, i))->p_abs;
         
         // if the conflicted file is not a dup file, solve the conflict as per
         // usual
-        tmp = strstr(list_get(l_conf_old, i), DUP_EXT);
+        tmp = strstr(list_get(l_conf, i), DUP_EXT);
         if (tmp == NULL) {
             // duplicate the file and upload it to the server
-            sync_dupe_upload(si_client, sock_fd, path_conf, info_client);
+            sync_dupe_upload(si_client, sock_fd, path_conf);
         }
 
         // otherwise, since we don't wish to create dup files of dup files,
@@ -71,12 +74,13 @@ void sync_changelogs(sync_info *si_client, int sock_fd,
 
 void sync_old_r(sync_info *si_client, int sock_fd, 
         tf_node *n_root, tree_file *ch_new, list *l_conf) {
+    int i;
     int resp;
     tf_node *n_query_curr;
 
     // we're only concerned with leaf nodes since those represent files
     if (n_root->children->size == 0) {
-        // search for the corresponding node in ch_old
+        // search for the corresponding node in ch_new
         n_query_curr = tf_find(ch_new, n_root->p_abs);    
 
         // if item in server cl
@@ -121,13 +125,14 @@ void sync_old_r(sync_info *si_client, int sock_fd,
 
     // recurse on children
     for (i = 0; i < n_root->children->size; i++) {
-        sync_old_r(si_client, sock_fd, list_get(n_root->children, i), ch_old, l_conf);
+        sync_old_r(si_client, sock_fd, list_get(n_root->children, i), ch_new, l_conf);
     }
 }
 
 // traverse through server's changelog and copy over modified files, else delete
 // them clientside
 void sync_new_r(int sock_fd, tf_node *n_root) {
+    int i;
     int resp;
 
     // we only care about root nodes, or files
@@ -152,10 +157,13 @@ void sync_new_r(int sock_fd, tf_node *n_root) {
     }
 }
 
-int sync_dupe_upload(sync_file *si_client, int sock_fd, char *path_ori) {
+int sync_dupe_upload(sync_info *si_client, int sock_fd, char *path_ori) {
     size_t br;
+    char buf[BUF_LEN];
     int resp;
     char path_dup[MSG_LEN];
+    FILE * fp_ori;
+    FILE * fp_dup;
 
     // get the name of the dupe file
     su_get_dup_path(path_ori, path_dup, si_client->id);
@@ -166,9 +174,9 @@ int sync_dupe_upload(sync_file *si_client, int sock_fd, char *path_ori) {
 
     while (1) {
         // read contents into buf
-        br = fread(buf, sizeof(char), buf_len, fp_ori);
+        br = fread(buf, sizeof(char), BUF_LEN, fp_ori);
 
-        if (ferror(fp)) {
+        if (ferror(fp_ori)) {
             // TODO: error handle
         }
 
@@ -176,12 +184,12 @@ int sync_dupe_upload(sync_file *si_client, int sock_fd, char *path_ori) {
         fwrite(buf, sizeof(char), br, fp_dup);
         
         // if eof has been reached, we are done
-        if (feof(fp)) {
+        if (feof(fp_dup)) {
             break;
         }
     }
 
-    remove(fp_ori);
+    remove(path_ori);
     // TODO: error handle
 
     // upload the duped file to server

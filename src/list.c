@@ -130,16 +130,21 @@ void list_double_capacity(list *lp) {
 void list_free(list *lp) {
     int i;
     
-    // loop through all elements and call the content specific free function on
-    // them
-    for (i = 0; i < lp->size; i++) {
-        if (lp->data[i] != NULL) {
-            (*lp->data_free)(lp->data[i]);
+    if (lp->data_free != NULL) {
+        // loop through all elements and call the content specific free function on
+        // them
+        for (i = 0; i < lp->size; i++) {
+            if (lp->data[i] != NULL) {
+                (*lp->data_free)(lp->data[i]);
+            }
         }
     }
 
     // free the data pointer
     free(lp->data);
+
+    // free the list itself
+    free(lp);
 }
 
 /*

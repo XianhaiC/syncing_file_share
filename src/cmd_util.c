@@ -22,6 +22,6 @@ int resp_await(int sock_fd) {
 // use to let caller know that request was completed
 // flag denotes the condition/context of provided process
 int resp_send(int sock_fd, int32_t flag) {
-    send(sock_fd, flag);
+    send_int32_t(sock_fd, flag);
     // TODO: error handling
 }

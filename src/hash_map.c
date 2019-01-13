@@ -36,7 +36,7 @@ void hash_map_free_list(hash_map *hm, hash_map_n **list, unsigned int cap,
     hash_map_n *n_tmp;
     hash_map_n *n_curr;
 
-    if (free_val) {
+    if (free_val && hm->data_free != NULL) {
         // free the nodes in the list
         for (i = 0; i < cap; i++) {
             // free linked list
